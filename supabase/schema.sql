@@ -34,6 +34,7 @@ create table if not exists pedido_items (
 
 create index if not exists productos_categoria_idx on productos(categoria_id);
 create index if not exists pedido_items_pedido_idx on pedido_items(pedido_id);
+create index if not exists pedido_items_producto_idx on pedido_items(producto_id);
 
 -- Seguridad (RLS). Por ahora cualquiera con la clave "anon" puede leer y escribir:
 -- sirve para una app de uso interno. Antes de publicarla abiertamente, agrega
@@ -52,6 +53,6 @@ create policy "acceso total pedido_items" on pedido_items for all using (true) w
 insert into storage.buckets (id, name, public) values ('productos', 'productos', true)
   on conflict (id) do nothing;
 
-create policy "fotos lectura publica" on storage.objects for select using (bucket_id = 'productos');
+-- El bucket es público: las fotos se ven por URL sin política de lectura (así no se puede listar todo el bucket).
 create policy "fotos subir" on storage.objects for insert with check (bucket_id = 'productos');
 create policy "fotos borrar" on storage.objects for delete using (bucket_id = 'productos');
