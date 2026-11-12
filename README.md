@@ -23,7 +23,13 @@ Sin configuración funciona en **modo local**: los datos quedan en el navegador 
 Se registran solos con su número de celular y una contraseña. Quedan **pendientes** hasta que los apruebes en *Admin > Clientes*.
 Desde ahí también puedes bloquearlos o cambiarles la contraseña. Cada cliente ve el catálogo y **solo sus propios pedidos**.
 
+## Publicar en internet (Vercel, gratis)
+1. Entra en https://vercel.com con tu cuenta de GitHub y elige *Add New > Project*.
+2. Selecciona el repositorio `microApp-Pedidos` y la rama que quieras publicar. Vercel detecta Vite solo; `vercel.json` ya tiene la regla para que las rutas de la app funcionen.
+3. En *Environment Variables* agrega `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `VITE_CURRENCY` con los mismos valores del `.env`.
+4. Pulsa *Deploy*. Cada push a GitHub vuelve a publicar la app. Con Netlify funciona igual (`public/_redirects` ya está incluido).
+
 ## Instalar en el celular
-Publica la app (por ejemplo en Vercel o Netlify con `npm run build`) y ábrela desde el celular:
+Abre la dirección publicada desde el celular:
 - Android (Chrome): menú ⋮ > *Instalar app*.
 - iPhone (Safari): Compartir > *Añadir a pantalla de inicio*.

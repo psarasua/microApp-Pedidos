@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, Empty, Spinner } from '../components/ui'
 import { useAuth } from '../lib/auth'
+import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
 import { formatDate, formatMoney } from '../lib/format'
@@ -24,7 +26,9 @@ function whatsappText(o: Order) {
 }
 
 export function Orders() {
-  const { orders, loading, refresh } = useData()
+  const { orders, products, loading, refresh } = useData()
+  const cart = useCart()
+  const nav = useNavigate()
   const { isAdmin } = useAuth()
   const [open, setOpen] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -37,6 +41,19 @@ export function Orders() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo completar la acción')
     }
+  }
+
+  function repeat(o: Order) {
+    const available = o.items.filter((i) => i.product_id && products.some((p) => p.id === i.product_id))
+    if (available.length === 0) return setError('Los productos de este pedido ya no están disponibles.')
+    cart.clear()
+    for (const i of available) cart.setQty(i.product_id!, i.quantity)
+    const missing = o.items.length - available.length
+    if (missing > 0 && !window.confirm(`${missing} producto(s) ya no están disponibles y no se agregarán. ¿Continuar?`)) {
+      cart.clear()
+      return
+    }
+    nav('/pedido')
   }
 
   if (loading) return <Spinner />
@@ -70,8 +87,11 @@ export function Orders() {
                     ))}
                   </ul>
                   {o.notes && <p className="mt-3 rounded-lg bg-paper p-3 text-sm">{o.notes}</p>}
-                  {isAdmin && (
                   <div className="mt-4 flex flex-wrap gap-2">
+                    <Button onClick={() => repeat(o)} className="h-10 text-sm">Repetir pedido</Button>
+                  </div>
+                  {isAdmin && (
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {STATUSES.filter((s) => s !== o.status).map((s) => (
                       <Button key={s} variant="ghost" onClick={() => run(() => db.setOrderStatus(o.id, s))}>
                         Marcar {s}
