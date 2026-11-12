@@ -86,4 +86,13 @@ export const localDb: Db = {
       s.orders = s.orders.filter((o) => o.id !== id)
     })
   },
+  async listClientes() {
+    return []
+  },
+  async setClienteEstado() {
+    throw new Error('Los clientes requieren Supabase')
+  },
+  async resetClave() {
+    throw new Error('Los clientes requieren Supabase')
+  },
 }

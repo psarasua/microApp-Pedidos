@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Button, Empty, Field, Input, inputClass, Spinner } from '../components/ui'
@@ -6,9 +6,9 @@ import { useData } from '../lib/data'
 import { db } from '../lib/db'
 import { formatMoney } from '../lib/format'
 import { resizeImage } from '../lib/image'
-import type { Category, Product } from '../lib/types'
+import type { Category, Perfil, Product } from '../lib/types'
 
-type Tab = 'productos' | 'categorias'
+type Tab = 'productos' | 'categorias' | 'clientes'
 
 export function Admin() {
   const { loading } = useData()
@@ -22,8 +22,9 @@ export function Admin() {
       <div className="mb-5 flex gap-2">
         <button className={tabClass('productos')} onClick={() => setTab('productos')}>Productos</button>
         <button className={tabClass('categorias')} onClick={() => setTab('categorias')}>Categorías</button>
+        {db.mode === 'supabase' && <button className={tabClass('clientes')} onClick={() => setTab('clientes')}>Clientes</button>}
       </div>
-      {loading ? <Spinner /> : tab === 'productos' ? <Products /> : <Categories />}
+      {loading ? <Spinner /> : tab === 'productos' ? <Products /> : tab === 'categorias' ? <Categories /> : <Clients />}
     </div>
   )
 }
@@ -225,5 +226,116 @@ function Categories() {
         </ul>
       )}
     </>
+  )
+}
+
+const estadoStyle: Record<Perfil['estado'], string> = {
+  pendiente: 'bg-mark text-ink',
+  aprobado: 'bg-ink text-white',
+  bloqueado: 'bg-stamp text-white',
+}
+
+function Clients() {
+  const [clients, setClients] = useState<Perfil[] | null>(null)
+  const [resetting, setResetting] = useState<Perfil | null>(null)
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    try {
+      const list = await db.listClientes()
+      const order = { pendiente: 0, aprobado: 1, bloqueado: 2 }
+      setClients(list.sort((a, b) => order[a.estado] - order[b.estado] || a.nombre.localeCompare(b.nombre, 'es')))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudieron cargar los clientes')
+      setClients([])
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  async function setEstado(c: Perfil, estado: Perfil['estado']) {
+    setError('')
+    try {
+      await db.setClienteEstado(c.id, estado)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo actualizar el cliente')
+    }
+  }
+
+  if (!clients) return <Spinner />
+  return (
+    <>
+      {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
+      {clients.length === 0 ? (
+        <Empty title="Todavía no hay clientes">Cuando alguien cree su cuenta aparece acá para que lo apruebes.</Empty>
+      ) : (
+        <ul className="space-y-2">
+          {clients.map((c) => (
+            <li key={c.id} className="rounded-xl border-2 border-line bg-sheet p-3">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{c.nombre}</p>
+                  <p className="text-sm text-ink-soft">{c.usuario}</p>
+                  {c.direccion && <p className="truncate text-sm text-ink-soft">{c.direccion}</p>}
+                </div>
+                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${estadoStyle[c.estado]}`}>{c.estado}</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {c.estado !== 'aprobado' && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
+                {c.estado === 'aprobado' && (
+                  <Button variant="danger" onClick={() => window.confirm(`¿Bloquear a ${c.nombre}?`) && setEstado(c, 'bloqueado')}>Bloquear</Button>
+                )}
+                <Button variant="ghost" onClick={() => setResetting(c)}>Cambiar contraseña</Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {resetting && <ResetPassword client={resetting} onClose={() => setResetting(null)} />}
+    </>
+  )
+}
+
+function ResetPassword({ client, onClose }: { client: Perfil; onClose: () => void }) {
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (password.length < 8) return setError('La contraseña debe tener al menos 8 caracteres')
+    setBusy(true)
+    setError('')
+    try {
+      await db.resetClave(client.id, password)
+      setDone(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo cambiar la contraseña')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title={`Nueva contraseña para ${client.nombre}`} onClose={onClose}>
+      {done ? (
+        <div className="space-y-4">
+          <p>Contraseña cambiada. Compártesela al cliente por un medio privado, como un mensaje directo.</p>
+          <Button className="w-full" onClick={onClose}>Listo</Button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <Field label="Nueva contraseña (mínimo 8 caracteres)">
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} autoFocus autoComplete="off" required />
+          </Field>
+          {error && <p role="alert" className="text-stamp">{error}</p>}
+          <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Guardando…' : 'Cambiar contraseña'}</Button>
+        </form>
+      )}
+    </Modal>
   )
 }

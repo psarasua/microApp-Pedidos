@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
@@ -7,18 +8,21 @@ const icon = {
   catalogo: <path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z" />,
   pedido: <path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" />,
   historial: <path d="M12 7v5l3 2M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" />,
+  cuenta: <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" />,
   admin: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-3-2 1-2-1-.3-2.3h-4L10 8 8 9 6 8 4 11l2 1v2l-2 1 2 3 2-1 2 1 .3 2.3h4L14 18l2-1 2 1 2-3-2-1z" />,
 }
 
 export function Layout() {
   const { count } = useCart()
   const { error } = useData()
+  const { isAdmin, perfil } = useAuth()
 
   const items = [
     { to: '/', label: 'Catálogo', icon: icon.catalogo, end: true },
     { to: '/pedido', label: 'Pedido', icon: icon.pedido, badge: count },
-    { to: '/historial', label: 'Historial', icon: icon.historial },
-    { to: '/admin', label: 'Admin', icon: icon.admin },
+    { to: '/historial', label: isAdmin ? 'Recibidos' : 'Mis pedidos', icon: icon.historial },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: icon.admin }] : []),
+    { to: '/cuenta', label: 'Cuenta', icon: icon.cuenta },
   ]
 
   return (
@@ -42,6 +46,7 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
+          {perfil && db.mode === 'supabase' && <p className="mt-8 truncate px-3 text-sm text-white/70">{perfil.nombre}</p>}
           {db.mode === 'local' && (
             <p className="mt-8 rounded-lg bg-white/10 p-3 text-sm text-white/80">
               Modo local: los datos están solo en este dispositivo.
@@ -59,7 +64,10 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-sheet md:hidden">
+      <nav
+        className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-sheet md:hidden"
+        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+      >
         {items.map((i) => (
           <NavLink
             key={i.to}

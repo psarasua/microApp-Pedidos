@@ -1,13 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Db, Order } from './types'
-
-const url = import.meta.env.VITE_SUPABASE_URL as string
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+import { invokeClientes, sb as client } from './supabase'
+import type { Db, Order, Perfil } from './types'
 
 const BUCKET = 'productos'
 
 export function createSupabaseDb(): Db {
-  const sb = createClient(url, key)
+  const sb = client!
 
   const check = <T extends { error: { message: string } | null }>(res: T): T => {
     if (res.error) throw new Error(res.error.message)
@@ -59,7 +56,7 @@ export function createSupabaseDb(): Db {
       const { data } = check(
         await sb
           .from('pedidos')
-          .select('id, created_at, status:estado, notes:notas, items:pedido_items(product_id:producto_id, name:nombre, price:precio, quantity:cantidad)')
+          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario), items:pedido_items(product_id:producto_id, name:nombre, price:precio, quantity:cantidad)')
           .order('created_at', { ascending: false }),
       )
       return (data ?? []) as unknown as Order[]
@@ -83,6 +80,16 @@ export function createSupabaseDb(): Db {
     },
     async deleteOrder(id) {
       check(await sb.from('pedidos').delete().eq('id', id))
+    },
+    async listClientes() {
+      const { data } = check(await sb.from('perfiles').select('*').eq('rol', 'cliente').order('created_at', { ascending: false }))
+      return (data ?? []) as Perfil[]
+    },
+    async setClienteEstado(id, estado) {
+      check(await sb.from('perfiles').update({ estado }).eq('id', id))
+    },
+    async resetClave(id, password) {
+      await invokeClientes({ accion: 'restablecer_clave', id, password })
     },
   }
 }

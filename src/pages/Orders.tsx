@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button, Empty, Spinner } from '../components/ui'
+import { useAuth } from '../lib/auth'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
 import { formatDate, formatMoney } from '../lib/format'
@@ -24,6 +25,7 @@ function whatsappText(o: Order) {
 
 export function Orders() {
   const { orders, loading, refresh } = useData()
+  const { isAdmin } = useAuth()
   const [open, setOpen] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -42,7 +44,7 @@ export function Orders() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-4 text-2xl font-extrabold">Historial</h1>
+      <h1 className="mb-4 text-2xl font-extrabold">{isAdmin ? 'Pedidos recibidos' : 'Mis pedidos'}</h1>
       {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
       <ul className="space-y-3">
         {orders.map((o) => {
@@ -52,7 +54,7 @@ export function Orders() {
               <button className="flex w-full items-center gap-3 p-4 text-left" onClick={() => setOpen(isOpen ? null : o.id)} aria-expanded={isOpen}>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{formatDate(o.created_at)}</p>
-                  <p className="text-sm text-ink-soft">{o.items.reduce((s, i) => s + i.quantity, 0)} artículos</p>
+                  <p className="text-sm text-ink-soft">{isAdmin && o.cliente ? `${o.cliente.nombre} · ` : ''}{o.items.reduce((s, i) => s + i.quantity, 0)} artículos</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusStyle[o.status]}`}>{o.status}</span>
                 <span className="w-24 text-right text-lg font-extrabold">{formatMoney(orderTotal(o))}</span>
@@ -68,6 +70,7 @@ export function Orders() {
                     ))}
                   </ul>
                   {o.notes && <p className="mt-3 rounded-lg bg-paper p-3 text-sm">{o.notes}</p>}
+                  {isAdmin && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {STATUSES.filter((s) => s !== o.status).map((s) => (
                       <Button key={s} variant="ghost" onClick={() => run(() => db.setOrderStatus(o.id, s))}>
@@ -84,6 +87,7 @@ export function Orders() {
                       Eliminar
                     </Button>
                   </div>
+                  )}
                 </div>
               )}
             </li>
