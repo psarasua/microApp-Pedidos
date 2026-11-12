@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #14213d;
+  --color-ink-soft: #4b5a78;
+  --color-paper: #f6f7f9;
+  --color-sheet: #ffffff;
+  --color-carbon: #2347c5;
+  --color-carbon-dark: #1a37a0;
+  --color-stamp: #d93a2b;
+  --color-mark: #ffd93d;
+  --color-line: #d9dee7;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible { outline: 3px solid var(--color-carbon); outline-offset: 2px; }
+
+/* Borde perforado del ticket de pedido */
+.ticket {
+  --r: 7px;
+  background: var(--color-sheet);
+  -webkit-mask:
+    radial-gradient(circle var(--r) at 50% 0, #0000 98%, #000) top / calc(var(--r) * 3) 51% repeat-x,
+    radial-gradient(circle var(--r) at 50% 100%, #0000 98%, #000) bottom / calc(var(--r) * 3) 51% repeat-x;
+  mask:
+    radial-gradient(circle var(--r) at 50% 0, #0000 98%, #000) top / calc(var(--r) * 3) 51% repeat-x,
+    radial-gradient(circle var(--r) at 50% 100%, #0000 98%, #000) bottom / calc(var(--r) * 3) 51% repeat-x;
+}
+
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
