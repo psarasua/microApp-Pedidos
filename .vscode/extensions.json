@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "anthropic.claude-code",
+    "bradlc.vscode-tailwindcss",
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode",
+    "dsznajder.es7-react-js-snippets",
+    "usernamehw.errorlens",
+    "supabase.vscode-supabase-extension",
+    "ms-ceintl.vscode-language-pack-es"
+  ]
+}
