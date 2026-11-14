@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Button, Empty, Field, Input, inputClass, Spinner } from '../components/ui'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
-import { formatMoney } from '../lib/format'
+import { formatPrice, normalizar } from '../lib/format'
 import { resizeImage } from '../lib/image'
 import { clearCatalog, clearOrders, loadSample } from '../lib/seed'
 import type { Category, Perfil, Product } from '../lib/types'
@@ -34,7 +34,17 @@ export function Admin() {
 function Products() {
   const { products, categories, refresh } = useData()
   const [editing, setEditing] = useState<Product | 'new' | null>(null)
+  const [q, setQ] = useState('')
   const catName = (id: string | null) => categories.find((c) => c.id === id)?.name ?? 'Sin categoría'
+
+  const shown = useMemo(() => {
+    const words = normalizar(q).split(/\s+/).filter(Boolean)
+    return products.filter((p) => {
+      const text = normalizar(`${p.name} ${p.codigo}`)
+      return words.every((w) => text.includes(w))
+    })
+  }, [products, q])
+  const sinPrecio = products.filter((p) => p.price <= 0).length
 
   async function remove(p: Product) {
     if (!window.confirm(`¿Eliminar "${p.name}"? Los pedidos anteriores se conservan.`)) return
@@ -44,18 +54,29 @@ function Products() {
 
   return (
     <>
-      <Button className="mb-4 w-full sm:w-auto" onClick={() => setEditing('new')}>Nuevo producto</Button>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+        <Input type="search" placeholder="Buscar por nombre o código" aria-label="Buscar producto" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Button className="shrink-0" onClick={() => setEditing('new')}>Nuevo producto</Button>
+      </div>
+      {products.length > 0 && (
+        <p className="mb-3 text-sm text-ink-soft">
+          {shown.length === products.length ? `${products.length} productos` : `${shown.length} de ${products.length} productos`}
+          {sinPrecio > 0 && ` · ${sinPrecio} sin precio`}
+        </p>
+      )}
       {products.length === 0 ? (
         <Empty title="No hay productos">Crea el primero con el botón de arriba.</Empty>
+      ) : shown.length === 0 ? (
+        <Empty title="No hay productos con esa búsqueda" />
       ) : (
         <ul className="space-y-2">
-          {products.map((p) => (
+          {shown.map((p) => (
             <li key={p.id} className="flex items-center gap-3 rounded-xl border-2 border-line bg-sheet p-3">
               <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{p.name}</p>
-                <p className="truncate text-sm text-ink-soft">{catName(p.category_id)}</p>
-                <p className="font-bold">{formatMoney(p.price)}</p>
+                <p className="truncate text-sm text-ink-soft">{p.codigo && `Cód. ${p.codigo} · `}{catName(p.category_id)}</p>
+                <p className={p.price > 0 ? 'font-bold' : 'text-sm font-semibold text-stamp'}>{formatPrice(p.price)}</p>
               </div>
               <Button variant="ghost" onClick={() => setEditing(p)}>Editar</Button>
               <Button variant="danger" onClick={() => remove(p)} aria-label={`Eliminar ${p.name}`}>Eliminar</Button>
@@ -69,6 +90,7 @@ function Products() {
 }
 
 function ProductForm({ product, categories, onClose, onSaved }: { product: Product | null; categories: Category[]; onClose: () => void; onSaved: () => Promise<void> }) {
+  const [codigo, setCodigo] = useState(product?.codigo ?? '')
   const [name, setName] = useState(product?.name ?? '')
   const [description, setDescription] = useState(product?.description ?? '')
   const [price, setPrice] = useState(product ? String(product.price) : '')
@@ -99,6 +121,7 @@ function ProductForm({ product, categories, onClose, onSaved }: { product: Produ
     try {
       await db.saveProduct({
         id: product?.id,
+        codigo: codigo.trim(),
         name: name.trim(),
         description: description.trim(),
         price: value,
@@ -130,7 +153,10 @@ function ProductForm({ product, categories, onClose, onSaved }: { product: Produ
             )}
           </div>
         </div>
-        <Field label="Nombre"><Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Código"><Input value={codigo} onChange={(e) => setCodigo(e.target.value)} maxLength={20} inputMode="numeric" /></Field>
+          <div className="col-span-2"><Field label="Nombre"><Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field></div>
+        </div>
         <Field label="Descripción (opcional)">
           <textarea className={`${inputClass} h-20 py-2`} value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>

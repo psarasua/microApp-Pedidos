@@ -49,6 +49,7 @@ export async function loadSample() {
   for (const p of PRODUCTOS) {
     if (existingProducts.has(p.nombre)) continue
     await db.saveProduct({
+      codigo: '',
       name: p.nombre,
       description: p.descripcion,
       price: p.precio,
@@ -63,7 +64,7 @@ export async function loadSample() {
   for (const ped of PEDIDOS) {
     const items: OrderItem[] = ped.items.flatMap(([nombre, quantity]) => {
       const p = products.find((x) => x.name === nombre)
-      return p ? [{ product_id: p.id, name: p.name, price: p.price, quantity }] : []
+      return p ? [{ product_id: p.id, codigo: p.codigo, name: p.name, price: p.price, quantity }] : []
     })
     if (items.length === 0) continue
     await db.createOrder(items, ped.notas)

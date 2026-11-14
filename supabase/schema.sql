@@ -10,6 +10,7 @@ create table if not exists categorias (
 
 create table if not exists productos (
   id uuid primary key default gen_random_uuid(),
+  codigo text not null default '' check (char_length(codigo) <= 20), -- código del catálogo del proveedor; no es único (el catálogo repite algunos)
   nombre text not null,
   descripcion text not null default '',
   precio numeric(12,2) not null default 0 check (precio >= 0),
@@ -44,12 +45,14 @@ create table if not exists pedido_items (
   id uuid primary key default gen_random_uuid(),
   pedido_id uuid not null references pedidos(id) on delete cascade,
   producto_id uuid references productos(id) on delete set null,
+  codigo text not null default '',
   nombre text not null,
   precio numeric(12,2) not null,
   cantidad integer not null check (cantidad > 0)
 );
 
 create index if not exists productos_categoria_idx on productos(categoria_id);
+create index if not exists productos_codigo_idx on productos(codigo);
 create index if not exists pedidos_cliente_idx on pedidos(cliente_id);
 create index if not exists pedido_items_pedido_idx on pedido_items(pedido_id);
 create index if not exists pedido_items_producto_idx on pedido_items(producto_id);
@@ -80,16 +83,17 @@ revoke all on function private.es_aprobado() from public;
 grant execute on function private.es_admin() to authenticated;
 grant execute on function private.es_aprobado() to authenticated;
 
--- El precio y el nombre de cada ítem los fija el servidor desde el producto: el cliente no puede alterarlos.
+-- El nombre, el precio y el código de cada ítem los fija el servidor desde el producto: el cliente no puede alterarlos.
 create or replace function private.fijar_item() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare p record;
 begin
   if new.producto_id is null then raise exception 'Falta el producto del artículo'; end if;
-  select nombre, precio into p from public.productos where id = new.producto_id;
+  select nombre, precio, codigo into p from public.productos where id = new.producto_id;
   if not found then raise exception 'El producto ya no existe'; end if;
   new.nombre := p.nombre;
   new.precio := p.precio;
+  new.codigo := p.codigo;
   return new;
 end $$;
 

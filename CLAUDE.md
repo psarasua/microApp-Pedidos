@@ -21,6 +21,10 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `supabase/functions/clientes/index.ts` registro de clientes y cambio de clave por el admin (se despliega con verify_jwt desactivado)
 - `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Account
 - `supabase/schema.sql` esquema completo; los nombres de columnas están en español y se mapean a inglés en `db.supabase.ts`
+- Catálogo de Conaprole 2026 (311 productos, 12 categorías): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
+  `public/productos/<código>.webp` (`image_url = /productos/<código>.webp`; los dos códigos repetidos del catálogo, 2635 y 81339, usan `-2.webp`
+  para el segundo producto). El catálogo no trae precios: quedan en 0 y la app los muestra como «Sin precio». `productos.codigo` no es único.
+  Las fotos nuevas que se suben desde Admin van a Supabase Storage.
 
 ## Diseño
 Idea: talonario de pedidos. Paleta: tinta `#14213D`, papel `#F6F7F9`, azul carbón `#2347C5`, rojo sello `#D93A2B`,

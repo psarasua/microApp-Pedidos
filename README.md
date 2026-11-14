@@ -18,6 +18,8 @@ Sin configuración funciona en **modo local**: los datos quedan en el navegador 
    ```sql
    update perfiles set rol = 'admin', estado = 'aprobado' where usuario = 'TU_ID';
    ```
+6. (Opcional) Carga el catálogo de Conaprole 2026, con 311 productos y fotos: ejecuta `supabase/seed-catalogo-conaprole.sql` en el SQL Editor.
+   Las fotos ya están en `public/productos/`. El catálogo no trae precios: cárgalos desde *Admin > Productos* (los productos sin precio se ven como «Sin precio»).
 
 ### Cómo entran los clientes
 Se registran solos con su nombre y una contraseña (el celular y la dirección son opcionales). El sistema les asigna un **ID numérico único**, que es su usuario, y se lo muestra al terminar el registro.

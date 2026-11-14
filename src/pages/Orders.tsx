@@ -18,8 +18,9 @@ const statusStyle: Record<OrderStatus, string> = {
 const orderTotal = (o: Order) => o.items.reduce((s, i) => s + i.price * i.quantity, 0)
 
 function whatsappText(o: Order) {
-  const lines = o.items.map((i) => `• ${i.quantity} × ${i.name} — ${formatMoney(i.price * i.quantity)}`)
-  const text = [`Pedido del ${formatDate(o.created_at)}`, ...lines, `Total: ${formatMoney(orderTotal(o))}`, o.notes && `Notas: ${o.notes}`]
+  const lines = o.items.map((i) => `• ${i.quantity} × ${i.name}${i.codigo ? ` (cód. ${i.codigo})` : ''}${i.price > 0 ? ` — ${formatMoney(i.price * i.quantity)}` : ''}`)
+  const total = orderTotal(o)
+  const text = [`Pedido del ${formatDate(o.created_at)}`, ...lines, total > 0 && `Total: ${formatMoney(total)}`, o.notes && `Notas: ${o.notes}`]
     .filter(Boolean)
     .join('\n')
   return `https://wa.me/?text=${encodeURIComponent(text)}`
@@ -74,15 +75,15 @@ export function Orders() {
                   <p className="text-sm text-ink-soft">{isAdmin && o.cliente ? `${o.cliente.nombre} · ` : ''}{o.items.reduce((s, i) => s + i.quantity, 0)} artículos</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusStyle[o.status]}`}>{o.status}</span>
-                <span className="w-24 text-right text-lg font-extrabold">{formatMoney(orderTotal(o))}</span>
+                <span className="w-24 text-right text-lg font-extrabold">{orderTotal(o) > 0 ? formatMoney(orderTotal(o)) : '—'}</span>
               </button>
               {isOpen && (
                 <div className="border-t-2 border-dashed border-line p-4">
                   <ul className="space-y-1">
                     {o.items.map((i, idx) => (
                       <li key={idx} className="flex justify-between gap-3">
-                        <span>{i.quantity} × {i.name}</span>
-                        <span className="font-semibold">{formatMoney(i.price * i.quantity)}</span>
+                        <span>{i.quantity} × {i.name}{i.codigo && <span className="text-ink-soft"> · cód. {i.codigo}</span>}</span>
+                        {i.price > 0 && <span className="font-semibold">{formatMoney(i.price * i.quantity)}</span>}
                       </li>
                     ))}
                   </ul>

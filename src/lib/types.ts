@@ -2,6 +2,8 @@ export type Category = { id: string; name: string }
 
 export type Product = {
   id: string
+  /** Código del producto en el catálogo del proveedor. No es único: el catálogo repite algunos. */
+  codigo: string
   name: string
   description: string
   price: number
@@ -13,6 +15,7 @@ export type OrderStatus = 'pendiente' | 'enviado' | 'entregado'
 
 export type OrderItem = {
   product_id: string | null
+  codigo: string
   name: string
   price: number
   quantity: number

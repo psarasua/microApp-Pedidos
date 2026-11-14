@@ -28,13 +28,15 @@ export function createSupabaseDb(): Db {
       const { data } = check(
         await sb
           .from('productos')
-          .select('id, name:nombre, description:descripcion, price:precio, image_url, category_id:categoria_id')
-          .order('nombre'),
+          .select('id, codigo, name:nombre, description:descripcion, price:precio, image_url, category_id:categoria_id')
+          .order('nombre')
+          .limit(5000),
       )
       return (data ?? []).map((p) => ({ ...p, price: Number(p.price), description: p.description ?? '' }))
     },
     async saveProduct(p) {
       const row = {
+        codigo: p.codigo,
         nombre: p.name,
         descripcion: p.description,
         precio: p.price,
@@ -56,7 +58,7 @@ export function createSupabaseDb(): Db {
       const { data } = check(
         await sb
           .from('pedidos')
-          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario), items:pedido_items(product_id:producto_id, name:nombre, price:precio, quantity:cantidad)')
+          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario), items:pedido_items(product_id:producto_id, codigo, name:nombre, price:precio, quantity:cantidad)')
           .order('created_at', { ascending: false }),
       )
       return (data ?? []) as unknown as Order[]

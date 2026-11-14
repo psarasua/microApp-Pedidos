@@ -36,6 +36,7 @@ export function Cart() {
     try {
       const items: OrderItem[] = lines.map((l) => ({
         product_id: l.product.id,
+        codigo: l.product.codigo,
         name: l.product.name,
         price: l.product.price,
         quantity: l.quantity,
@@ -61,8 +62,8 @@ export function Cart() {
               <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{p.name}</p>
-                <p className="text-sm text-ink-soft">{formatMoney(p.price)} c/u</p>
-                <p className="font-bold">{formatMoney(p.price * quantity)}</p>
+                <p className="truncate text-sm text-ink-soft">{p.codigo && `Cód. ${p.codigo} · `}{p.price > 0 ? `${formatMoney(p.price)} c/u` : 'Sin precio'}</p>
+                {p.price > 0 && <p className="font-bold">{formatMoney(p.price * quantity)}</p>}
               </div>
               <Stepper value={quantity} onChange={(n) => cart.setQty(p.id, n)} label={p.name} />
             </li>
@@ -70,7 +71,7 @@ export function Cart() {
         </ul>
         <div className="mt-4 flex items-baseline justify-between border-t-2 border-ink pt-4">
           <span className="text-lg font-bold">Total</span>
-          <span className="bg-mark px-2 text-3xl font-extrabold">{formatMoney(total)}</span>
+          <span className="bg-mark px-2 text-3xl font-extrabold">{total > 0 ? formatMoney(total) : 'A definir'}</span>
         </div>
       </div>
 

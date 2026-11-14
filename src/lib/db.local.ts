@@ -52,7 +52,8 @@ export const localDb: Db = {
     })
   },
   async listProducts() {
-    return load().products.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    // Los datos guardados antes de existir el código no lo traen.
+    return load().products.map((p) => ({ ...p, codigo: p.codigo ?? '' })).sort((a, b) => a.name.localeCompare(b.name, 'es'))
   },
   async saveProduct(p) {
     mutate((s) => {

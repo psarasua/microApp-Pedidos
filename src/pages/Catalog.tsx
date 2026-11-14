@@ -5,7 +5,7 @@ import { Stepper } from '../components/Stepper'
 import { Empty, Input, Spinner } from '../components/ui'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
-import { formatMoney } from '../lib/format'
+import { formatPrice, normalizar } from '../lib/format'
 
 export function Catalog() {
   const { products, categories, loading } = useData()
@@ -14,10 +14,13 @@ export function Catalog() {
   const [q, setQ] = useState('')
 
   const visible = useMemo(() => {
-    const term = q.trim().toLowerCase()
-    return products.filter(
-      (p) => (cat === 'all' || p.category_id === cat) && (!term || p.name.toLowerCase().includes(term)),
-    )
+    // Cada palabra escrita debe aparecer en el nombre, el código o la descripción.
+    const words = normalizar(q).split(/\s+/).filter(Boolean)
+    return products.filter((p) => {
+      if (cat !== 'all' && p.category_id !== cat) return false
+      const text = normalizar(`${p.name} ${p.codigo} ${p.description}`)
+      return words.every((w) => text.includes(w))
+    })
   }, [products, cat, q])
 
   if (loading) return <Spinner />
@@ -35,7 +38,7 @@ export function Catalog() {
   return (
     <div>
       <div className="sticky top-0 z-30 -mx-4 space-y-3 bg-paper/95 px-4 pb-3 pt-1 backdrop-blur md:-mx-8 md:px-8">
-        <Input type="search" placeholder="Buscar producto" aria-label="Buscar producto" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input type="search" placeholder="Buscar por nombre o código" aria-label="Buscar por nombre o código" value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
           <button className={chip(cat === 'all')} onClick={() => setCat('all')}>Todos</button>
           {categories.map((c) => (
@@ -54,8 +57,9 @@ export function Catalog() {
               <li key={p.id} className="flex flex-col">
                 <ProductPhoto src={p.image_url} alt={p.name} className={`aspect-square w-full rounded-xl ${n ? 'ring-4 ring-mark' : ''}`} />
                 <p className="mt-2 font-semibold leading-tight">{p.name}</p>
+                {p.codigo && <p className="text-xs font-semibold text-carbon">Cód. {p.codigo}</p>}
                 {p.description && <p className="line-clamp-2 text-sm text-ink-soft">{p.description}</p>}
-                <p className="mt-1 text-lg font-extrabold tabular-nums">{formatMoney(p.price)}</p>
+                <p className={`mt-1 tabular-nums ${p.price > 0 ? 'text-lg font-extrabold' : 'text-sm font-semibold text-ink-soft'}`}>{formatPrice(p.price)}</p>
                 <div className="mt-auto pt-2">
                   {n ? (
                     <Stepper value={n} onChange={(v) => cart.setQty(p.id, v)} label={p.name} />
