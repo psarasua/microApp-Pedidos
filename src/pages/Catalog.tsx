@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { InstallTip } from '../components/InstallTip'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Stepper } from '../components/Stepper'
 import { Empty, Input, Spinner } from '../components/ui'
@@ -37,6 +38,7 @@ export function Catalog() {
 
   return (
     <div>
+      <InstallTip />
       <div className="sticky top-0 z-30 -mx-4 space-y-3 bg-paper/95 px-4 pb-3 pt-1 backdrop-blur md:-mx-8 md:px-8">
         <Input type="search" placeholder="Buscar por nombre o código" aria-label="Buscar por nombre o código" value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">

@@ -27,6 +27,9 @@ export type Perfil = {
   nombre: string
   direccion: string
   telefono: string
+  /** Correo del cliente; obligatorio al registrarse y verificado con un código. */
+  email: string | null
+  email_verificado: boolean
   /** El admin restableció la contraseña: la persona debe elegir una nueva antes de seguir. */
   debe_cambiar_clave: boolean
   rol: 'cliente' | 'admin'

@@ -310,13 +310,18 @@ function Clients() {
                     Usuario <span className="rounded bg-mark px-1.5 font-bold tracking-wider text-ink">{c.usuario}</span>
                     {c.telefono && ` · Cel. ${c.telefono}`}
                   </p>
+                  <p className="truncate text-sm text-ink-soft">
+                    {c.email ?? 'Sin correo'}
+                    {c.email && !c.email_verificado && <span className="font-semibold text-stamp"> · correo sin verificar</span>}
+                  </p>
                   {c.direccion && <p className="truncate text-sm text-ink-soft">{c.direccion}</p>}
                   {c.debe_cambiar_clave && <p className="text-sm font-semibold text-stamp">Tiene una contraseña temporal sin cambiar</p>}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${estadoStyle[c.estado]}`}>{c.estado}</span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {c.estado !== 'aprobado' && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
+                {c.estado !== 'aprobado' && c.email_verificado && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
+                {c.estado !== 'aprobado' && !c.email_verificado && <p className="self-center text-sm text-ink-soft">Se puede aprobar cuando verifique su correo.</p>}
                 {c.estado === 'aprobado' && (
                   <Button variant="danger" onClick={() => window.confirm(`¿Bloquear a ${c.nombre}?`) && setEstado(c, 'bloqueado')}>Bloquear</Button>
                 )}

@@ -21,17 +21,23 @@ create table if not exists productos (
 
 -- Un perfil por cuenta. El usuario es un ID numérico (5 a 15 dígitos) que asigna el sistema al registrarse;
 -- la contraseña la guarda Supabase Auth cifrada (bcrypt). El celular es solo un dato de contacto.
+-- El correo es obligatorio al registrarse y se verifica con un código; sirve para recuperar la contraseña y el usuario.
 create table if not exists perfiles (
   id uuid primary key references auth.users(id) on delete cascade,
   usuario text not null unique check (usuario ~ '^[0-9]{5,15}$'),
   nombre text not null check (char_length(btrim(nombre)) between 2 and 80),
   direccion text not null default '' check (char_length(direccion) <= 200),
   telefono text not null default '' check (char_length(telefono) <= 20),
+  email text check (email is null or (char_length(email) <= 254 and email = lower(email))),
+  email_verificado boolean not null default false,
   debe_cambiar_clave boolean not null default false, -- el admin restableció la clave: hay que elegir una nueva
   rol text not null default 'cliente' check (rol in ('cliente','admin')),
   estado text not null default 'pendiente' check (estado in ('pendiente','aprobado','bloqueado')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- un cliente solo puede ser aprobado si verificó su correo (el admin queda exento)
+  constraint perfiles_aprobado_requiere_correo check (rol = 'admin' or estado <> 'aprobado' or email_verificado)
 );
+create unique index if not exists perfiles_email_key on perfiles(email) where email is not null;
 
 create table if not exists pedidos (
   id uuid primary key default gen_random_uuid(),
@@ -154,32 +160,39 @@ create policy "fotos: admin sube" on storage.objects for insert to authenticated
 create policy "fotos: admin borra" on storage.objects for delete to authenticated
   using (bucket_id = 'productos' and (select private.es_admin()));
 
--- ===== Recuperación de contraseña =====
--- Código de recuperación de cada cuenta: solo se guarda su hash. Sin políticas RLS: únicamente la función "clientes"
--- (service role) accede a esta tabla.
-create table if not exists recuperacion (
-  perfil_id uuid primary key references perfiles(id) on delete cascade,
-  codigo_hash text not null,
-  salt text not null,
+-- ===== Correos: códigos de verificación y límites de envío =====
+-- Registro de cada correo enviado (códigos y avisos). De los códigos solo se guarda su hash. Sirve para validar los
+-- códigos (vencen a los 15 minutos, 5 intentos) y para limitar los envíos por correo, por conexión y por día.
+-- Sin políticas RLS: únicamente la función "clientes" (service role) accede a esta tabla.
+create table if not exists envios_correo (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  perfil_id uuid references perfiles(id) on delete set null,
+  tipo text not null check (tipo in ('registro', 'recuperacion', 'usuario', 'aviso')),
+  codigo_hash text,
+  salt text,
   intentos integer not null default 0,
-  bloqueado_hasta timestamptz,
+  expira timestamptz,
+  usado boolean not null default false,
+  enviado boolean not null default false,
+  ip_hash text,
   created_at timestamptz not null default now()
 );
-alter table recuperacion enable row level security;
-revoke all on recuperacion from anon, authenticated;
+create index if not exists envios_correo_email_idx on envios_correo(email, created_at desc);
+create index if not exists envios_correo_ip_idx on envios_correo(ip_hash, created_at desc);
+create index if not exists envios_correo_fecha_idx on envios_correo(created_at);
+alter table envios_correo enable row level security;
+revoke all on envios_correo from anon, authenticated;
 
--- Suma un intento fallido de forma atómica y bloquea la recuperación al llegar al máximo.
-create or replace function public.recuperacion_fallo(p uuid, maximo integer, minutos integer)
-returns void language sql security definer set search_path = '' as $$
-  update public.recuperacion
-  set intentos = intentos + 1,
-      bloqueado_hasta = case when intentos + 1 >= maximo then now() + make_interval(mins => minutos) else bloqueado_hasta end
-  where perfil_id = p
+-- Suma un intento al código y devuelve el total (atómico: varios intentos en paralelo se cuentan todos).
+create or replace function public.codigo_intento(p uuid) returns integer
+language sql security definer set search_path = '' as $$
+  update public.envios_correo set intentos = intentos + 1 where id = p returning intentos
 $$;
-revoke execute on function public.recuperacion_fallo(uuid, integer, integer) from public, anon, authenticated;
-grant execute on function public.recuperacion_fallo(uuid, integer, integer) to service_role;
+revoke execute on function public.codigo_intento(uuid) from public, anon, authenticated;
+grant execute on function public.codigo_intento(uuid) to service_role;
 
 -- ===== Primer administrador =====
--- 1) Crea tu cuenta desde la app (pantalla «Crear cuenta»).
+-- 1) Crea tu cuenta desde la app (pantalla «Crear cuenta») y verifica tu correo con el código que te llega.
 -- 2) La app te muestra tu usuario (ID de 6 dígitos). Ejecuta esto con ese ID para convertirte en admin:
 --    update perfiles set rol = 'admin', estado = 'aprobado' where usuario = 'TU_ID';

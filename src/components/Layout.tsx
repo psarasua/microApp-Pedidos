@@ -8,21 +8,25 @@ const icon = {
   catalogo: <path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z" />,
   pedido: <path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" />,
   historial: <path d="M12 7v5l3 2M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" />,
-  cuenta: <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" />,
   admin: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-3-2 1-2-1-.3-2.3h-4L10 8 8 9 6 8 4 11l2 1v2l-2 1 2 3 2-1 2 1 .3 2.3h4L14 18l2-1 2 1 2-3-2-1z" />,
 }
 
 export function Layout() {
-  const { count } = useCart()
+  const cart = useCart()
+  const { count } = cart
   const { error } = useData()
-  const { isAdmin, perfil } = useAuth()
+  const { isAdmin, perfil, signOut } = useAuth()
+
+  function logout() {
+    cart.clear()
+    void signOut()
+  }
 
   const items = [
     { to: '/', label: 'Catálogo', icon: icon.catalogo, end: true },
     { to: '/pedido', label: 'Pedido', icon: icon.pedido, badge: count },
     { to: '/historial', label: isAdmin ? 'Recibidos' : 'Mis pedidos', icon: icon.historial },
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: icon.admin }] : []),
-    { to: '/cuenta', label: 'Cuenta', icon: icon.cuenta },
   ]
 
   return (
@@ -46,7 +50,12 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          {perfil && db.mode === 'supabase' && <p className="mt-8 truncate px-3 text-sm text-white/70">{perfil.nombre}</p>}
+          {perfil && db.mode === 'supabase' && (
+            <div className="mt-8 px-3">
+              <p className="truncate text-sm text-white/70">{perfil.nombre}</p>
+              <button onClick={logout} className="mt-1 text-sm font-semibold text-white underline">Salir</button>
+            </div>
+          )}
           {db.mode === 'local' && (
             <p className="mt-8 rounded-lg bg-white/10 p-3 text-sm text-white/80">
               Modo local: los datos están solo en este dispositivo.
@@ -56,6 +65,12 @@ export function Layout() {
       </aside>
 
       <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
+        {db.mode === 'supabase' && (
+          <header className="mb-3 flex items-center justify-between md:hidden">
+            <span className="text-xl font-extrabold tracking-tight">Pedidos</span>
+            <button onClick={logout} className="h-10 rounded-lg px-3 text-sm font-semibold text-ink-soft underline">Salir</button>
+          </header>
+        )}
         {error && (
           <p role="alert" className="mb-4 rounded-lg border-2 border-stamp bg-stamp/10 p-3 text-stamp">
             {error}

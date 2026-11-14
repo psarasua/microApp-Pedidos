@@ -4,15 +4,16 @@ import { Spinner } from './components/ui'
 import { AuthProvider, useAuth } from './lib/auth'
 import { CartProvider } from './lib/cart'
 import { DataProvider } from './lib/data'
-import { Account } from './pages/Account'
 import { AccountStatus } from './pages/AccountStatus'
 import { Admin } from './pages/Admin'
 import { Cart } from './pages/Cart'
 import { Catalog } from './pages/Catalog'
 import { ForcePasswordChange } from './pages/ForcePasswordChange'
+import { ForgotUser } from './pages/ForgotUser'
 import { Login } from './pages/Login'
 import { Orders } from './pages/Orders'
 import { Recover } from './pages/Recover'
+import { Register } from './pages/Register'
 
 function Gate() {
   const { loading, signedIn, perfil, isAdmin } = useAuth()
@@ -22,9 +23,10 @@ function Gate() {
   if (!signedIn)
     return (
       <Routes>
-        <Route path="registro" element={<Login mode="registro" />} />
+        <Route path="registro" element={<Register />} />
         <Route path="recuperar" element={<Recover />} />
-        <Route path="*" element={<Login mode="entrar" />} />
+        <Route path="usuario" element={<ForgotUser />} />
+        <Route path="*" element={<Login />} />
       </Routes>
     )
 
@@ -41,7 +43,6 @@ function Gate() {
             <Route path="pedido" element={<Cart />} />
             <Route path="historial" element={<Orders />} />
             {isAdmin && <Route path="admin" element={<Admin />} />}
-            <Route path="cuenta" element={<Account />} />
             <Route path="*" element={<Catalog />} />
           </Route>
         </Routes>

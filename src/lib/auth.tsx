@@ -1,9 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { emailDe, invokeClientes, sb } from './supabase'
+import { emailDe, sb } from './supabase'
 import type { Perfil } from './types'
-
-type RegisterInput = { nombre: string; direccion: string; telefono: string; password: string }
 
 type AuthCtx = {
   loading: boolean
@@ -11,8 +9,6 @@ type AuthCtx = {
   perfil: Perfil | null
   isAdmin: boolean
   signIn: (usuario: string, password: string) => Promise<void>
-  /** Crea la cuenta y devuelve el usuario (ID) y el código de recuperación. No inicia sesión: antes hay que mostrárselos a la persona. */
-  register: (input: RegisterInput) => Promise<{ usuario: string; codigo: string }>
   signOut: () => Promise<void>
   refreshPerfil: () => Promise<void>
 }
@@ -26,6 +22,8 @@ const LOCAL_PERFIL: Perfil = {
   nombre: 'Este dispositivo',
   direccion: '',
   telefono: '',
+  email: null,
+  email_verificado: true,
   debe_cambiar_clave: false,
   rol: 'admin',
   estado: 'aprobado',
@@ -75,10 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signIn(usuario, password) {
         const { error } = await sb!.auth.signInWithPassword({ email: emailDe(soloDigitos(usuario)), password })
         if (error) throw new Error('Usuario o contraseña incorrectos')
-      },
-      async register(input) {
-        const { usuario, codigo } = await invokeClientes<{ ok: true; usuario: string; codigo: string }>({ accion: 'registrar', ...input })
-        return { usuario, codigo }
       },
       async signOut() {
         await sb?.auth.signOut()
