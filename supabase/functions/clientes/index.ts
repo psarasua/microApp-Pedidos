@@ -17,9 +17,17 @@ const json = (body: unknown, status = 200) =>
 
 const fail = (message: string, status = 400) => json({ error: message }, status)
 
-// El usuario es el celular; Supabase Auth pide un email, así que se deriva uno interno (debe coincidir con src/lib/supabase.ts).
+// El usuario es un ID numérico asignado por el sistema; Supabase Auth pide un email, así que se deriva uno interno
+// (debe coincidir con src/lib/supabase.ts).
 const emailDe = (usuario: string) => `${usuario}@clientes.invalid`
 const MAX_PENDIENTES = 100
+const INTENTOS_ID = 10
+
+/** ID al azar de 6 dígitos (100000 a 999999). */
+function nuevoId(): string {
+  const n = crypto.getRandomValues(new Uint32Array(1))[0]
+  return String(100000 + (n % 900000))
+}
 
 async function esAdmin(req: Request): Promise<boolean> {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
@@ -48,10 +56,9 @@ Deno.serve(async (req) => {
   }
 
   if (body.accion === 'registrar') {
-    const usuario = String(body.usuario ?? '').replace(/\D/g, '')
     const nombre = String(body.nombre ?? '').trim()
     const direccion = String(body.direccion ?? '').trim().slice(0, 200)
-    if (!/^[0-9]{8,15}$/.test(usuario)) return fail('El número debe tener entre 8 y 15 dígitos')
+    const telefono = String(body.telefono ?? '').replace(/[^\d+ ]/g, '').trim().slice(0, 20)
     if (nombre.length < 2 || nombre.length > 80) return fail('Escribe tu nombre')
     const errClave = validarClave(body.password)
     if (errClave) return fail(errClave)
@@ -59,21 +66,27 @@ Deno.serve(async (req) => {
     const { count } = await admin.from('perfiles').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente')
     if ((count ?? 0) >= MAX_PENDIENTES) return fail('Hay demasiadas solicitudes pendientes. Intenta más tarde.', 429)
 
-    const { data: creado, error } = await admin.auth.admin.createUser({
-      email: emailDe(usuario),
-      password: body.password as string,
-      email_confirm: true,
-    })
-    if (error || !creado.user) {
-      const repetido = /already|registered|exists/i.test(error?.message ?? '')
-      return fail(repetido ? 'Ese número ya está registrado' : 'No se pudo crear la cuenta', repetido ? 409 : 500)
+    // Se prueba con IDs al azar hasta encontrar uno libre (la unicidad la garantiza el email único de Auth).
+    let userId: string | null = null
+    let usuario = ''
+    for (let i = 0; i < INTENTOS_ID && !userId; i++) {
+      usuario = nuevoId()
+      const { data: creado, error } = await admin.auth.admin.createUser({
+        email: emailDe(usuario),
+        password: body.password as string,
+        email_confirm: true,
+      })
+      if (creado?.user) userId = creado.user.id
+      else if (!/already|registered|exists/i.test(error?.message ?? '')) return fail('No se pudo crear la cuenta', 500)
     }
-    const { error: errPerfil } = await admin.from('perfiles').insert({ id: creado.user.id, usuario, nombre, direccion })
+    if (!userId) return fail('No se pudo asignar un usuario. Intenta de nuevo.', 500)
+
+    const { error: errPerfil } = await admin.from('perfiles').insert({ id: userId, usuario, nombre, direccion, telefono })
     if (errPerfil) {
-      await admin.auth.admin.deleteUser(creado.user.id)
+      await admin.auth.admin.deleteUser(userId)
       return fail('No se pudo crear la cuenta', 500)
     }
-    return json({ ok: true })
+    return json({ ok: true, usuario })
   }
 
   if (body.accion === 'restablecer_clave') {

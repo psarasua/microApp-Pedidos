@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { emailDe, invokeClientes, sb } from './supabase'
 import type { Perfil } from './types'
 
-type RegisterInput = { usuario: string; nombre: string; direccion: string; password: string }
+type RegisterInput = { nombre: string; direccion: string; telefono: string; password: string }
 
 type AuthCtx = {
   loading: boolean
@@ -11,7 +11,8 @@ type AuthCtx = {
   perfil: Perfil | null
   isAdmin: boolean
   signIn: (usuario: string, password: string) => Promise<void>
-  register: (input: RegisterInput) => Promise<void>
+  /** Crea la cuenta y devuelve el ID de usuario asignado. No inicia sesión: antes hay que mostrarle el ID a la persona. */
+  register: (input: RegisterInput) => Promise<string>
   signOut: () => Promise<void>
   refreshPerfil: () => Promise<void>
 }
@@ -24,6 +25,7 @@ const LOCAL_PERFIL: Perfil = {
   usuario: '',
   nombre: 'Este dispositivo',
   direccion: '',
+  telefono: '',
   rol: 'admin',
   estado: 'aprobado',
   created_at: '',
@@ -71,12 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: perfil?.rol === 'admin' && perfil.estado === 'aprobado',
       async signIn(usuario, password) {
         const { error } = await sb!.auth.signInWithPassword({ email: emailDe(soloDigitos(usuario)), password })
-        if (error) throw new Error('Número o contraseña incorrectos')
+        if (error) throw new Error('Usuario o contraseña incorrectos')
       },
       async register(input) {
-        await invokeClientes({ accion: 'registrar', ...input, usuario: soloDigitos(input.usuario) })
-        const { error } = await sb!.auth.signInWithPassword({ email: emailDe(soloDigitos(input.usuario)), password: input.password })
-        if (error) throw new Error('La cuenta se creó, pero no se pudo iniciar sesión. Intenta entrar.')
+        const { usuario } = await invokeClientes<{ ok: true; usuario: string }>({ accion: 'registrar', ...input })
+        return usuario
       },
       async signOut() {
         await sb?.auth.signOut()

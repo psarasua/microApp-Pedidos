@@ -23,6 +23,7 @@ export type Perfil = {
   usuario: string
   nombre: string
   direccion: string
+  telefono: string
   rol: 'cliente' | 'admin'
   estado: 'pendiente' | 'aprobado' | 'bloqueado'
   created_at: string

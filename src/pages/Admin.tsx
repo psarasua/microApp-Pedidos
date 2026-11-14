@@ -280,7 +280,10 @@ function Clients() {
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{c.nombre}</p>
-                  <p className="text-sm text-ink-soft">{c.usuario}</p>
+                  <p className="text-sm text-ink-soft">
+                    Usuario <span className="rounded bg-mark px-1.5 font-bold tracking-wider text-ink">{c.usuario}</span>
+                    {c.telefono && ` · Cel. ${c.telefono}`}
+                  </p>
                   {c.direccion && <p className="truncate text-sm text-ink-soft">{c.direccion}</p>}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${estadoStyle[c.estado]}`}>{c.estado}</span>

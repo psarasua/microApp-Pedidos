@@ -18,7 +18,7 @@ export function AccountStatus() {
     <div className="grid min-h-dvh place-items-center px-4">
       <div className="w-full max-w-sm text-center">
         <h1 className="text-2xl font-extrabold">{content.title}</h1>
-        {perfil && <p className="mt-1 font-semibold">{perfil.nombre}</p>}
+        {perfil && <p className="mt-1 font-semibold">{perfil.nombre} · Usuario {perfil.usuario}</p>}
         <p className="mt-2 text-ink-soft">{content.text}</p>
         <div className="mt-6 space-y-2">
           {perfil?.estado === 'pendiente' && (

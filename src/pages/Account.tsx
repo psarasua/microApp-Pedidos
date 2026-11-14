@@ -12,7 +12,12 @@ export function Account() {
       <h1 className="mb-4 text-2xl font-extrabold">Mi cuenta</h1>
       <div className="rounded-xl border-2 border-line bg-sheet p-4">
         <p className="text-lg font-bold">{perfil?.nombre}</p>
-        {perfil?.usuario && <p className="text-ink-soft">Celular: {perfil.usuario}</p>}
+        {perfil?.usuario && (
+          <p className="mt-1 text-ink-soft">
+            Tu usuario: <span className="rounded bg-mark px-2 py-0.5 font-extrabold tracking-wider text-ink">{perfil.usuario}</span>
+          </p>
+        )}
+        {perfil?.telefono && <p className="text-ink-soft">Celular: {perfil.telefono}</p>}
         {perfil?.direccion && <p className="text-ink-soft">{perfil.direccion}</p>}
       </div>
 

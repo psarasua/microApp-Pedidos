@@ -18,12 +18,14 @@ create table if not exists productos (
   created_at timestamptz not null default now()
 );
 
--- Un perfil por cuenta. El usuario es el número de celular; la contraseña la guarda Supabase Auth cifrada (bcrypt).
+-- Un perfil por cuenta. El usuario es un ID numérico (5 a 15 dígitos) que asigna el sistema al registrarse;
+-- la contraseña la guarda Supabase Auth cifrada (bcrypt). El celular es solo un dato de contacto.
 create table if not exists perfiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  usuario text not null unique check (usuario ~ '^[0-9]{8,15}$'),
+  usuario text not null unique check (usuario ~ '^[0-9]{5,15}$'),
   nombre text not null check (char_length(btrim(nombre)) between 2 and 80),
   direccion text not null default '' check (char_length(direccion) <= 200),
+  telefono text not null default '' check (char_length(telefono) <= 20),
   rol text not null default 'cliente' check (rol in ('cliente','admin')),
   estado text not null default 'pendiente' check (estado in ('pendiente','aprobado','bloqueado')),
   created_at timestamptz not null default now()
@@ -149,5 +151,5 @@ create policy "fotos: admin borra" on storage.objects for delete to authenticate
 
 -- ===== Primer administrador =====
 -- 1) Crea tu cuenta desde la app (pantalla «Crear cuenta»).
--- 2) Ejecuta esto con tu número de celular para convertirte en admin:
---    update perfiles set rol = 'admin', estado = 'aprobado' where usuario = 'TU_NUMERO';
+-- 2) La app te muestra tu usuario (ID de 6 dígitos). Ejecuta esto con ese ID para convertirte en admin:
+--    update perfiles set rol = 'admin', estado = 'aprobado' where usuario = 'TU_ID';

@@ -30,8 +30,10 @@ barra lateral en PC. Mantener botones táctiles de al menos 40 px y foco visible
 ## Convenciones
 - Textos de interfaz en español, frases en minúscula salvo la primera letra.
 - Los pedidos guardan nombre y precio del producto al momento de confirmar (no cambian si se edita el producto).
-- Login: usuario = número de celular (8 a 15 dígitos), contraseña de 8 o más caracteres. Supabase Auth guarda el hash (bcrypt).
-  Internamente el usuario se convierte en el email `<numero>@clientes.invalid` (debe coincidir en `src/lib/supabase.ts` y en la función).
+- Login: usuario = ID numérico que asigna la función `clientes` al registrarse (6 dígitos al azar, único; la base acepta 5 a 15),
+  contraseña de 8 o más caracteres. Supabase Auth guarda el hash (bcrypt). El celular es un dato de contacto opcional (`perfiles.telefono`).
+  Internamente el usuario se convierte en el email `<id>@clientes.invalid` (debe coincidir en `src/lib/supabase.ts` y en la función).
+  Para cambiar el ID de una cuenta hay que actualizar `auth.users.email`, `auth.identities.identity_data.email` y `perfiles.usuario` juntos.
 - Roles: `cliente` (ve catálogo y solo sus pedidos) y `admin`. Un cliente nuevo queda `pendiente` hasta que el admin lo aprueba.
 - La seguridad real está en las políticas RLS de `schema.sql`, no en ocultar pantallas. El precio de cada ítem lo fija un trigger
   desde `productos`: nunca confiar en el precio que envía el navegador.
