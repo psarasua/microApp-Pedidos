@@ -88,8 +88,9 @@ export function createSupabaseDb(): Db {
     async setClienteEstado(id, estado) {
       check(await sb.from('perfiles').update({ estado }).eq('id', id))
     },
-    async resetClave(id, password) {
-      await invokeClientes({ accion: 'restablecer_clave', id, password })
+    async resetClave(id) {
+      const { temporal } = await invokeClientes<{ ok: true; temporal: string }>({ accion: 'restablecer_clave', id })
+      return temporal
     },
   }
 }

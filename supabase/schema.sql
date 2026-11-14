@@ -26,6 +26,7 @@ create table if not exists perfiles (
   nombre text not null check (char_length(btrim(nombre)) between 2 and 80),
   direccion text not null default '' check (char_length(direccion) <= 200),
   telefono text not null default '' check (char_length(telefono) <= 20),
+  debe_cambiar_clave boolean not null default false, -- el admin restableció la clave: hay que elegir una nueva
   rol text not null default 'cliente' check (rol in ('cliente','admin')),
   estado text not null default 'pendiente' check (estado in ('pendiente','aprobado','bloqueado')),
   created_at timestamptz not null default now()
@@ -148,6 +149,31 @@ create policy "fotos: admin sube" on storage.objects for insert to authenticated
   with check (bucket_id = 'productos' and (select private.es_admin()));
 create policy "fotos: admin borra" on storage.objects for delete to authenticated
   using (bucket_id = 'productos' and (select private.es_admin()));
+
+-- ===== Recuperación de contraseña =====
+-- Código de recuperación de cada cuenta: solo se guarda su hash. Sin políticas RLS: únicamente la función "clientes"
+-- (service role) accede a esta tabla.
+create table if not exists recuperacion (
+  perfil_id uuid primary key references perfiles(id) on delete cascade,
+  codigo_hash text not null,
+  salt text not null,
+  intentos integer not null default 0,
+  bloqueado_hasta timestamptz,
+  created_at timestamptz not null default now()
+);
+alter table recuperacion enable row level security;
+revoke all on recuperacion from anon, authenticated;
+
+-- Suma un intento fallido de forma atómica y bloquea la recuperación al llegar al máximo.
+create or replace function public.recuperacion_fallo(p uuid, maximo integer, minutos integer)
+returns void language sql security definer set search_path = '' as $$
+  update public.recuperacion
+  set intentos = intentos + 1,
+      bloqueado_hasta = case when intentos + 1 >= maximo then now() + make_interval(mins => minutos) else bloqueado_hasta end
+  where perfil_id = p
+$$;
+revoke execute on function public.recuperacion_fallo(uuid, integer, integer) from public, anon, authenticated;
+grant execute on function public.recuperacion_fallo(uuid, integer, integer) to service_role;
 
 -- ===== Primer administrador =====
 -- 1) Crea tu cuenta desde la app (pantalla «Crear cuenta»).

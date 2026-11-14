@@ -24,6 +24,8 @@ export type Perfil = {
   nombre: string
   direccion: string
   telefono: string
+  /** El admin restableció la contraseña: la persona debe elegir una nueva antes de seguir. */
+  debe_cambiar_clave: boolean
   rol: 'cliente' | 'admin'
   estado: 'pendiente' | 'aprobado' | 'bloqueado'
   created_at: string
@@ -55,5 +57,6 @@ export interface Db {
   deleteOrder(id: string): Promise<void>
   listClientes(): Promise<Perfil[]>
   setClienteEstado(id: string, estado: Perfil['estado']): Promise<void>
-  resetClave(id: string, password: string): Promise<void>
+  /** Restablece la contraseña del cliente y devuelve la temporal generada (se muestra una sola vez). */
+  resetClave(id: string): Promise<string>
 }

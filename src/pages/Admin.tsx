@@ -285,6 +285,7 @@ function Clients() {
                     {c.telefono && ` · Cel. ${c.telefono}`}
                   </p>
                   {c.direccion && <p className="truncate text-sm text-ink-soft">{c.direccion}</p>}
+                  {c.debe_cambiar_clave && <p className="text-sm font-semibold text-stamp">Tiene una contraseña temporal sin cambiar</p>}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${estadoStyle[c.estado]}`}>{c.estado}</span>
               </div>
@@ -293,7 +294,7 @@ function Clients() {
                 {c.estado === 'aprobado' && (
                   <Button variant="danger" onClick={() => window.confirm(`¿Bloquear a ${c.nombre}?`) && setEstado(c, 'bloqueado')}>Bloquear</Button>
                 )}
-                <Button variant="ghost" onClick={() => setResetting(c)}>Cambiar contraseña</Button>
+                <Button variant="ghost" onClick={() => setResetting(c)}>Restablecer contraseña</Button>
               </div>
             </li>
           ))}
@@ -305,41 +306,49 @@ function Clients() {
 }
 
 function ResetPassword({ client, onClose }: { client: Perfil; onClose: () => void }) {
-  const [password, setPassword] = useState('')
+  const [temporal, setTemporal] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    if (password.length < 8) return setError('La contraseña debe tener al menos 8 caracteres')
+  async function generate() {
     setBusy(true)
     setError('')
     try {
-      await db.resetClave(client.id, password)
-      setDone(true)
+      setTemporal(await db.resetClave(client.id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cambiar la contraseña')
+      setError(err instanceof Error ? err.message : 'No se pudo restablecer la contraseña')
     } finally {
       setBusy(false)
     }
   }
 
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(`Usuario: ${client.usuario}\nContraseña temporal: ${temporal}`)
+      setCopied(true)
+    } catch {
+      /* sin portapapeles: se anota a mano */
+    }
+  }
+
   return (
-    <Modal title={`Nueva contraseña para ${client.nombre}`} onClose={onClose}>
-      {done ? (
+    <Modal title={`Contraseña de ${client.nombre}`} onClose={onClose}>
+      {temporal ? (
         <div className="space-y-4">
-          <p>Contraseña cambiada. Compártesela al cliente por un medio privado, como un mensaje directo.</p>
+          <p>Pásale al cliente esta contraseña temporal. <span className="font-semibold">Solo se muestra ahora.</span> Al entrar, tendrá que elegir una nueva.</p>
+          <p className="rounded-lg bg-mark px-3 py-3 text-center font-mono text-3xl font-extrabold tracking-widest">{temporal}</p>
+          <p className="text-sm text-ink-soft">Su usuario es <span className="font-bold">{client.usuario}</span>.</p>
+          <Button variant="ghost" className="w-full" onClick={copy}>{copied ? 'Copiado' : 'Copiar usuario y contraseña'}</Button>
           <Button className="w-full" onClick={onClose}>Listo</Button>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
-          <Field label="Nueva contraseña (mínimo 8 caracteres)">
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} autoFocus autoComplete="off" required />
-          </Field>
+        <div className="space-y-4">
+          <p>Las contraseñas se guardan cifradas: nadie puede verlas, ni siquiera tú. Por eso se genera una <span className="font-semibold">temporal</span>, que verás una sola vez.</p>
+          <p className="text-sm text-ink-soft">La contraseña actual de {client.nombre} dejará de funcionar. Si el cliente conserva su código de recuperación, puede evitar este paso y recuperarla solo.</p>
           {error && <p role="alert" className="text-stamp">{error}</p>}
-          <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Guardando…' : 'Cambiar contraseña'}</Button>
-        </form>
+          <Button className="w-full" onClick={generate} disabled={busy}>{busy ? 'Generando…' : 'Generar contraseña temporal'}</Button>
+        </div>
       )}
     </Modal>
   )

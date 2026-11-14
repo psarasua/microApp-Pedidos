@@ -9,8 +9,10 @@ import { AccountStatus } from './pages/AccountStatus'
 import { Admin } from './pages/Admin'
 import { Cart } from './pages/Cart'
 import { Catalog } from './pages/Catalog'
+import { ForcePasswordChange } from './pages/ForcePasswordChange'
 import { Login } from './pages/Login'
 import { Orders } from './pages/Orders'
+import { Recover } from './pages/Recover'
 
 function Gate() {
   const { loading, signedIn, perfil, isAdmin } = useAuth()
@@ -21,9 +23,12 @@ function Gate() {
     return (
       <Routes>
         <Route path="registro" element={<Login mode="registro" />} />
+        <Route path="recuperar" element={<Recover />} />
         <Route path="*" element={<Login mode="entrar" />} />
       </Routes>
     )
+
+  if (perfil?.debe_cambiar_clave) return <ForcePasswordChange />
 
   if (perfil?.estado !== 'aprobado') return <AccountStatus />
 

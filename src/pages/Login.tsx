@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { CredentialCard } from '../components/CredentialCard'
+import { PasswordInput } from '../components/PasswordInput'
 import { Button, Field, Input } from '../components/ui'
 import { soloDigitos, useAuth } from '../lib/auth'
 
@@ -12,11 +14,10 @@ export function Login({ mode }: { mode: 'entrar' | 'registro' }) {
   const [telefono, setTelefono] = useState('')
   const [password, setPassword] = useState('')
   const [repeat, setRepeat] = useState('')
-  const [show, setShow] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [created, setCreated] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [created, setCreated] = useState<{ usuario: string; codigo: string } | null>(null)
+  const [ack, setAck] = useState(false)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -41,19 +42,10 @@ export function Login({ mode }: { mode: 'entrar' | 'registro' }) {
     setBusy(true)
     setError('')
     try {
-      await signIn(created, password)
+      await signIn(created.usuario, password)
     } catch {
       setError('La cuenta se creó, pero no se pudo entrar. Vuelve a la pantalla de ingreso y usa tu usuario.')
       setBusy(false)
-    }
-  }
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(created ?? '')
-      setCopied(true)
-    } catch {
-      /* sin portapapeles: la persona puede anotarlo a mano */
     }
   }
 
@@ -62,19 +54,11 @@ export function Login({ mode }: { mode: 'entrar' | 'registro' }) {
       <div className="grid min-h-dvh place-items-center px-4 py-8">
         <div className="w-full max-w-sm">
           <p className="mb-1 text-3xl font-extrabold tracking-tight">Cuenta creada</p>
-          <p className="mb-6 text-ink-soft">Este es tu usuario. Anótalo, lo necesitas cada vez que entres.</p>
-          <div className="rounded-2xl border-2 border-line bg-sheet p-5 text-center">
-            <p className="text-sm font-semibold text-ink-soft">Tu usuario</p>
-            <p className="my-2 inline-block bg-mark px-3 text-5xl font-extrabold tracking-widest" aria-label={`Usuario ${created.split('').join(' ')}`}>
-              {created}
-            </p>
-            <Button variant="ghost" className="mx-auto mt-2 w-full" onClick={copy}>
-              {copied ? 'Copiado' : 'Copiar usuario'}
-            </Button>
-          </div>
-          <p className="mt-4 text-ink-soft">Tu cuenta queda pendiente hasta que el administrador la apruebe. Si olvidas el usuario, pídeselo a él.</p>
+          <p className="mb-6 text-ink-soft">Guarda estos datos: el usuario lo necesitas cada vez que entres.</p>
+          <CredentialCard usuario={created.usuario} codigo={created.codigo} onAckChange={setAck} />
+          <p className="mt-4 text-ink-soft">Tu cuenta queda pendiente hasta que el administrador la apruebe.</p>
           {error && <p role="alert" className="mt-3 text-stamp">{error}</p>}
-          <Button className="mt-4 w-full" onClick={enter} disabled={busy}>
+          <Button className="mt-4 w-full" onClick={enter} disabled={busy || !ack}>
             {busy ? 'Un momento…' : 'Entrar'}
           </Button>
         </div>
@@ -110,26 +94,10 @@ export function Login({ mode }: { mode: 'entrar' | 'registro' }) {
               />
             </Field>
           )}
-          <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-semibold text-ink-soft">Contraseña</label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={show ? 'text' : 'password'}
-                autoComplete={registro ? 'new-password' : 'current-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-12 w-full rounded-lg border-2 border-line bg-sheet pl-3 pr-24 text-base outline-none focus:border-carbon"
-              />
-              <button type="button" onClick={() => setShow((v) => !v)} aria-pressed={show} className="absolute right-1 top-1 h-10 rounded-md px-3 text-sm font-semibold text-carbon">
-                {show ? 'Ocultar' : 'Mostrar'}
-              </button>
-            </div>
-          </div>
+          <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} autoComplete={registro ? 'new-password' : 'current-password'} />
           {registro && (
             <Field label="Repite la contraseña">
-              <Input type={show ? 'text' : 'password'} autoComplete="new-password" value={repeat} onChange={(e) => setRepeat(e.target.value)} required />
+              <Input type="password" autoComplete="new-password" value={repeat} onChange={(e) => setRepeat(e.target.value)} required />
             </Field>
           )}
           {error && <p role="alert" className="text-stamp">{error}</p>}
@@ -138,7 +106,12 @@ export function Login({ mode }: { mode: 'entrar' | 'registro' }) {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-ink-soft">
+        {!registro && (
+          <p className="mt-4 text-center">
+            <Link to="/recuperar" className="font-semibold text-carbon underline">Olvidé mi contraseña</Link>
+          </p>
+        )}
+        <p className="mt-3 text-center text-ink-soft">
           {registro ? '¿Ya tienes cuenta? ' : '¿Primera vez? '}
           <Link to={registro ? '/' : '/registro'} className="font-semibold text-carbon underline">
             {registro ? 'Entrar' : 'Crear cuenta'}
