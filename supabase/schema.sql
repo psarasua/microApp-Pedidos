@@ -4,15 +4,15 @@
 -- ===== Tablas =====
 create table if not exists categorias (
   id uuid primary key default gen_random_uuid(),
-  nombre text not null,
+  nombre text not null constraint categorias_nombre_largo check (char_length(btrim(nombre)) between 1 and 80),
   created_at timestamptz not null default now()
 );
 
 create table if not exists productos (
   id uuid primary key default gen_random_uuid(),
   codigo text not null default '' check (char_length(codigo) <= 20), -- código del catálogo del proveedor; no es único (el catálogo repite algunos)
-  nombre text not null,
-  descripcion text not null default '',
+  nombre text not null constraint productos_nombre_largo check (char_length(btrim(nombre)) between 1 and 200),
+  descripcion text not null default '' constraint productos_descripcion_largo check (char_length(descripcion) <= 500),
   precio numeric(12,2) not null default 0 check (precio >= 0),
   image_url text,
   categoria_id uuid references categorias(id) on delete set null,
@@ -43,7 +43,7 @@ create table if not exists pedidos (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
   estado text not null default 'pendiente' check (estado in ('pendiente','enviado','entregado')),
-  notas text not null default '',
+  notas text not null default '' constraint pedidos_notas_largo check (char_length(notas) <= 500),
   cliente_id uuid default auth.uid() references perfiles(id) on delete set null
 );
 
@@ -54,7 +54,7 @@ create table if not exists pedido_items (
   codigo text not null default '',
   nombre text not null,
   precio numeric(12,2) not null,
-  cantidad integer not null check (cantidad > 0)
+  cantidad integer not null check (cantidad > 0) constraint pedido_items_cantidad_max check (cantidad <= 9999)
 );
 
 create index if not exists productos_categoria_idx on productos(categoria_id);
@@ -107,6 +107,32 @@ drop trigger if exists pedido_items_fijar on pedido_items;
 create trigger pedido_items_fijar before insert on pedido_items
   for each row execute function private.fijar_item();
 
+-- Crea un pedido con sus artículos en una sola transacción (si algo falla no queda un pedido vacío).
+-- Corre con los permisos de quien llama, así que aplican las políticas RLS y el trigger que fija nombre y precio.
+create or replace function public.crear_pedido(p_notas text, p_items jsonb) returns uuid
+language plpgsql set search_path = '' as $$
+declare
+  v_id uuid;
+begin
+  if jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) = 0 then
+    raise exception 'El pedido no tiene artículos';
+  end if;
+  if jsonb_array_length(p_items) > 300 then
+    raise exception 'El pedido tiene demasiados artículos';
+  end if;
+
+  insert into public.pedidos (notas) values (left(coalesce(p_notas, ''), 500)) returning id into v_id;
+
+  insert into public.pedido_items (pedido_id, producto_id, nombre, precio, cantidad)
+  select v_id, (i ->> 'producto_id')::uuid, '', 0, (i ->> 'cantidad')::integer
+  from jsonb_array_elements(p_items) as i;
+
+  return v_id;
+end
+$$;
+revoke execute on function public.crear_pedido(text, jsonb) from public, anon;
+grant execute on function public.crear_pedido(text, jsonb) to authenticated;
+
 -- ===== Seguridad (RLS) =====
 alter table categorias enable row level security;
 alter table productos enable row level security;
@@ -152,8 +178,10 @@ create policy "items: admin borra" on pedido_items for delete to authenticated
 
 -- ===== Fotos de productos =====
 -- Bucket público: las fotos se ven por URL. Solo el admin sube o borra.
-insert into storage.buckets (id, name, public) values ('productos', 'productos', true)
-  on conflict (id) do nothing;
+-- Máximo 2 MB por foto y solo JPG, PNG o WebP.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('productos', 'productos', true, 2097152, array['image/jpeg','image/png','image/webp'])
+  on conflict (id) do update set file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "fotos: admin sube" on storage.objects for insert to authenticated
   with check (bucket_id = 'productos' and (select private.es_admin()));

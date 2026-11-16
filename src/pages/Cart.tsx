@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { confirmar } from '../components/confirmar'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Stepper } from '../components/Stepper'
 import { Button, Empty, inputClass } from '../components/ui'
@@ -89,6 +90,6 @@ export function Cart() {
   )
 }
 
-function confirm_clear(clear: () => void) {
-  if (window.confirm('¿Vaciar todo el pedido?')) clear()
+async function confirm_clear(clear: () => void) {
+  if (await confirmar('¿Vaciar todo el pedido?', 'Vaciar')) clear()
 }

@@ -1,5 +1,7 @@
 /** Reduce la foto a un máximo de 800 px y la comprime (las fotos de celular pesan varios MB). */
 export async function resizeImage(file: File, max = 800, quality = 0.82): Promise<Blob> {
+  if (!file.type.startsWith('image/')) throw new Error('El archivo no es una imagen')
+  if (file.size > 25 * 1024 * 1024) throw new Error('La imagen es demasiado grande (máximo 25 MB)')
   const bitmap = await createImageBitmap(file)
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')

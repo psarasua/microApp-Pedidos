@@ -19,7 +19,11 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `src/lib/cart.tsx` carrito en `localStorage`
 - `src/lib/auth.tsx` sesión y perfil; `src/lib/supabase.ts` cliente compartido
 - `supabase/functions/clientes/index.ts` registro de clientes y cambio de clave por el admin (se despliega con verify_jwt desactivado)
-- `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Account
+- `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Register, Recover, ForgotUser, ForcePasswordChange
+- `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
+- `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). Si se agrega un servicio externo (fuentes, imágenes,
+  API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).
+- Los pedidos se crean con la función SQL `crear_pedido` (una sola transacción); el navegador solo envía producto y cantidad.
 - `supabase/schema.sql` esquema completo; los nombres de columnas están en español y se mapean a inglés en `db.supabase.ts`
 - Catálogo de Conaprole 2026 (311 productos, 12 categorías): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
   `public/productos/<código>.webp` (`image_url = /productos/<código>.webp`; los dos códigos repetidos del catálogo, 2635 y 81339, usan `-2.webp`
@@ -46,7 +50,8 @@ barra lateral en PC. Mantener botones táctiles de al menos 40 px y foco visible
   Otras acciones: `registrar`, `verificar_correo`, `reenviar_codigo`, `cambiar_clave`, `restablecer_clave` (admin: genera una contraseña temporal y marca
   `perfiles.debe_cambiar_clave`, que fuerza la pantalla `ForcePasswordChange`). Cambiar una contraseña invalida las sesiones abiertas,
   por eso la app vuelve a iniciar sesión justo después. Secretos de la función: `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`,
-  y `CORREO_SIMULADO=1` solo para pruebas. No hay sección «Mi cuenta»: el cliente solo ve Catálogo, Pedido y Mis pedidos (más «Salir»).
+  `CORREO_SIMULADO=1` solo para pruebas y `ALLOWED_ORIGINS` (opcional, lista de orígenes permitidos por CORS; sin él se permite cualquiera).
+  `restablecer_clave` solo funciona sobre clientes, no sobre admins. No hay sección «Mi cuenta»: el cliente solo ve Catálogo, Pedido y Mis pedidos (más «Salir»).
   Para cambiar el ID de una cuenta hay que actualizar `auth.users.email`, `auth.identities.identity_data.email` y `perfiles.usuario` juntos.
 - Roles: `cliente` (ve catálogo y solo sus pedidos) y `admin`. Un cliente nuevo queda `pendiente` hasta que el admin lo aprueba.
 - La seguridad real está en las políticas RLS de `schema.sql`, no en ocultar pantallas. El precio de cada ítem lo fija un trigger

@@ -7,6 +7,7 @@
 //   BREVO_SENDER_EMAIL   remitente verificado en Brevo
 //   BREVO_SENDER_NAME    (opcional) nombre del remitente, por defecto "Pedidos"
 //   CORREO_SIMULADO=1    (solo pruebas) no envía: escribe el correo en los registros de la función
+//   ALLOWED_ORIGINS      (opcional) orígenes del navegador permitidos, separados por comas
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const URL_SUPABASE = Deno.env.get('SUPABASE_URL')!
@@ -15,14 +16,22 @@ const admin = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// CORS: con ALLOWED_ORIGINS (lista separada por comas, p. ej. "https://pedidos.vercel.app") solo esos orígenes pueden llamar
+// desde un navegador; sin ese secreto se permite cualquiera (la seguridad real está en los tokens y los límites).
+const ORIGENES = (Deno.env.get('ALLOWED_ORIGINS') ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+
+function corsPara(req: Request): Record<string, string> {
+  const origen = req.headers.get('Origin') ?? ''
+  return {
+    'Access-Control-Allow-Origin': ORIGENES.length === 0 ? '*' : ORIGENES.includes(origen) ? origen : ORIGENES[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  }
 }
 
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
 const fail = (message: string, status = 400) => json({ error: message }, status)
 
@@ -268,8 +277,7 @@ async function claveActualCorrecta(usuario: string, clave: unknown): Promise<boo
 
 const NO_ENVIADO = 'No pudimos enviar el correo. Revisa la dirección e intenta de nuevo.'
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+async function manejar(req: Request): Promise<Response> {
   if (req.method !== 'POST') return fail('Método no permitido', 405)
 
   let body: Record<string, unknown>
@@ -488,8 +496,9 @@ Deno.serve(async (req) => {
       const sesion = await sesionDe(req)
       if (!sesion || sesion.rol !== 'admin' || sesion.estado !== 'aprobado') return fail('No autorizado', 403)
       const id = String(body.id ?? '')
-      const { data: objetivo } = await admin.from('perfiles').select('id').eq('id', id).maybeSingle()
-      if (!objetivo) return fail('No se encontró al cliente', 404)
+      // Solo clientes: un administrador que olvida su contraseña la recupera por correo (así nadie toma la cuenta de otro admin).
+      const { data: objetivo } = await admin.from('perfiles').select('id, rol').eq('id', id).maybeSingle()
+      if (!objetivo || objetivo.rol !== 'cliente') return fail('No se encontró al cliente', 404)
       const temporal = aleatorio(10)
       const { error } = await admin.auth.admin.updateUserById(id, { password: temporal })
       if (error) return fail('No se pudo cambiar la contraseña', 500)
@@ -502,4 +511,13 @@ Deno.serve(async (req) => {
     console.error(e)
     return fail('Ocurrió un error. Intenta de nuevo.', 500)
   }
+}
+
+Deno.serve(async (req) => {
+  const cabeceras = corsPara(req)
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cabeceras })
+  const res = await manejar(req)
+  for (const [nombre, valor] of Object.entries(cabeceras)) res.headers.set(nombre, valor)
+  res.headers.set('Cache-Control', 'no-store')
+  return res
 })

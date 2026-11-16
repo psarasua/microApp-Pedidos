@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { confirmar } from '../components/confirmar'
 import { Button, Empty, Spinner } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
@@ -44,16 +45,13 @@ export function Orders() {
     }
   }
 
-  function repeat(o: Order) {
+  async function repeat(o: Order) {
     const available = o.items.filter((i) => i.product_id && products.some((p) => p.id === i.product_id))
     if (available.length === 0) return setError('Los productos de este pedido ya no están disponibles.')
+    const missing = o.items.length - available.length
+    if (missing > 0 && !(await confirmar(`${missing} producto(s) ya no están disponibles y no se agregarán. ¿Continuar?`, 'Continuar'))) return
     cart.clear()
     for (const i of available) cart.setQty(i.product_id!, i.quantity)
-    const missing = o.items.length - available.length
-    if (missing > 0 && !window.confirm(`${missing} producto(s) ya no están disponibles y no se agregarán. ¿Continuar?`)) {
-      cart.clear()
-      return
-    }
     nav('/pedido')
   }
 
@@ -103,7 +101,7 @@ export function Orders() {
                     </a>
                     <Button
                       variant="danger"
-                      onClick={() => window.confirm('¿Eliminar este pedido?') && run(() => db.deleteOrder(o.id))}
+                      onClick={async () => (await confirmar('¿Eliminar este pedido?', 'Eliminar')) && run(() => db.deleteOrder(o.id))}
                     >
                       Eliminar
                     </Button>

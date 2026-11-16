@@ -64,17 +64,12 @@ export function createSupabaseDb(): Db {
       return (data ?? []) as unknown as Order[]
     },
     async createOrder(items, notes) {
-      const { data } = check(await sb.from('pedidos').insert({ notas: notes }).select('id').single())
+      // El nombre y el precio los fija el servidor (trigger); solo se envían producto y cantidad.
       check(
-        await sb.from('pedido_items').insert(
-          items.map((i) => ({
-            pedido_id: data!.id,
-            producto_id: i.product_id,
-            nombre: i.name,
-            precio: i.price,
-            cantidad: i.quantity,
-          })),
-        ),
+        await sb.rpc('crear_pedido', {
+          p_notas: notes,
+          p_items: items.map((i) => ({ producto_id: i.product_id, cantidad: i.quantity })),
+        }),
       )
     },
     async setOrderStatus(id, status) {

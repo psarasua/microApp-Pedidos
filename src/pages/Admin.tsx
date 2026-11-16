@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { confirmar } from '../components/confirmar'
 import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Button, Empty, Field, Input, inputClass, Spinner } from '../components/ui'
@@ -47,7 +48,7 @@ function Products() {
   const sinPrecio = products.filter((p) => p.price <= 0).length
 
   async function remove(p: Product) {
-    if (!window.confirm(`¿Eliminar "${p.name}"? Los pedidos anteriores se conservan.`)) return
+    if (!(await confirmar(`¿Eliminar "${p.name}"? Los pedidos anteriores se conservan.`, 'Eliminar'))) return
     await db.deleteProduct(p.id)
     await refresh()
   }
@@ -241,8 +242,8 @@ function Categories() {
                   <Button variant="ghost" onClick={() => setEditing({ id: c.id, name: c.name })}>Editar</Button>
                   <Button
                     variant="danger"
-                    onClick={() =>
-                      window.confirm(`¿Eliminar "${c.name}"? Sus productos quedan sin categoría.`) && run(() => db.deleteCategory(c.id))
+                    onClick={async () =>
+                      (await confirmar(`¿Eliminar "${c.name}"? Sus productos quedan sin categoría.`, 'Eliminar')) && run(() => db.deleteCategory(c.id))
                     }
                   >
                     Eliminar
@@ -323,7 +324,7 @@ function Clients() {
                 {c.estado !== 'aprobado' && c.email_verificado && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
                 {c.estado !== 'aprobado' && !c.email_verificado && <p className="self-center text-sm text-ink-soft">Se puede aprobar cuando verifique su correo.</p>}
                 {c.estado === 'aprobado' && (
-                  <Button variant="danger" onClick={() => window.confirm(`¿Bloquear a ${c.nombre}?`) && setEstado(c, 'bloqueado')}>Bloquear</Button>
+                  <Button variant="danger" onClick={async () => (await confirmar(`¿Bloquear a ${c.nombre}?`, 'Bloquear')) && setEstado(c, 'bloqueado')}>Bloquear</Button>
                 )}
                 <Button variant="ghost" onClick={() => setResetting(c)}>Restablecer contraseña</Button>
               </div>

@@ -1,5 +1,5 @@
 export function ProductPhoto({ src, alt, className = '' }: { src: string | null; alt: string; className?: string }) {
-  if (src) return <img src={src} alt={alt} loading="lazy" className={`object-cover ${className}`} />
+  if (src) return <img src={src} alt={alt} width={800} height={800} loading="lazy" decoding="async" className={`object-cover ${className}`} />
   return (
     <div className={`grid place-items-center bg-line text-ink-soft ${className}`} role="img" aria-label={`${alt} (sin foto)`}>
       <svg viewBox="0 0 24 24" className="h-1/3 w-1/3 fill-none stroke-current stroke-1.5" strokeLinecap="round" strokeLinejoin="round">

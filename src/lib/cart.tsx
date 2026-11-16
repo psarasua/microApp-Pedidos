@@ -17,8 +17,16 @@ const Ctx = createContext<CartCtx | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart>(() => {
+    // El contenido del almacenamiento no es confiable: se descartan claves o cantidades inválidas.
     try {
-      return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Cart
+      const raw: unknown = JSON.parse(localStorage.getItem(KEY) ?? '{}')
+      const limpio: Cart = {}
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        for (const [id, n] of Object.entries(raw)) {
+          if (typeof n === 'number' && Number.isInteger(n) && n > 0) limpio[id] = Math.min(n, 9999)
+        }
+      }
+      return limpio
     } catch {
       return {}
     }
