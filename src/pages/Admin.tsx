@@ -194,6 +194,7 @@ function Categories() {
   }
 
   const count = (id: string) => products.filter((p) => p.category_id === id).length
+  const sinCategoria = products.filter((p) => !p.category_id).length
 
   return (
     <>
@@ -212,6 +213,11 @@ function Categories() {
         <Button type="submit" className="shrink-0">Agregar</Button>
       </form>
       {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
+      {sinCategoria > 0 && (
+        <p className="mb-3 rounded-lg bg-mark/30 p-3 text-sm font-semibold">
+          {sinCategoria} {sinCategoria === 1 ? 'producto está' : 'productos están'} sin categoría: solo se ven en «Todos». Asígnalos desde Productos.
+        </p>
+      )}
       {categories.length === 0 ? (
         <Empty title="No hay categorías">Crea una para ordenar tus productos.</Empty>
       ) : (
