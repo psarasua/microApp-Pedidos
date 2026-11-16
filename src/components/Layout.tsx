@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { formatMoney } from '../lib/format'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
@@ -26,9 +26,7 @@ export function Layout() {
   const cart = useCart()
   const { count } = cart
   const { error, products } = useData()
-  const { pathname } = useLocation()
   const total = cart.totalFor(products)
-  const mostrarBarra = count > 0 && pathname !== '/pedido'
   const { isAdmin, perfil, signOut } = useAuth()
   const menu = useRef<HTMLDivElement>(null)
   const montado = useRef(false) // el latido no se dispara al cargar la página
@@ -66,12 +64,13 @@ export function Layout() {
           <div className="ml-auto flex items-center gap-1">
             <NavLink
               to="/pedido"
-              className="hidden h-11 items-center gap-2 rounded-xl px-3 font-semibold hover:bg-line/60 md:flex"
-              aria-label={count ? `Pedido, ${count} artículos` : 'Pedido'}
+              className={`items-center gap-2 rounded-xl px-3 font-semibold hover:bg-line/60 ${count ? 'flex' : 'hidden md:flex'} h-11`}
+              aria-label={count ? `Pedido, ${count} artículos${total > 0 ? `, total ${formatMoney(total)}` : ''}` : 'Pedido'}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{icon.pedido}</svg>
-              Pedido
+              <span className="hidden md:inline">Pedido</span>
               {!!count && <Insignia animar={montado.current} n={count} className="rounded-full bg-mark px-2 text-sm font-bold text-ink" />}
+              {total > 0 && <span className="font-display tabular-nums">{formatMoney(total)}</span>}
             </NavLink>
             <button
               type="button"
@@ -112,7 +111,7 @@ export function Layout() {
         )}
       </div>
 
-      <main className={`mx-auto w-full max-w-6xl px-4 pt-5 md:px-8 ${mostrarBarra ? 'pb-44 md:pb-28' : 'pb-28 md:pb-10'}`}>
+      <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
         {error && (
           <p role="alert" className="mb-4 rounded-lg border-2 border-stamp bg-stamp/10 p-3 text-stamp">
             {error}
@@ -120,18 +119,6 @@ export function Layout() {
         )}
         <Outlet />
       </main>
-
-      {mostrarBarra && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 px-4 md:bottom-6">
-          <Link
-            to="/pedido"
-            className="pointer-events-auto mx-auto flex min-h-14 max-w-xl items-center justify-between gap-3 rounded-2xl bg-accion px-5 text-white shadow-suave hover:bg-accion-dark"
-          >
-            <span className="font-semibold">Ver pedido · {count} {count === 1 ? 'artículo' : 'artículos'}</span>
-            <span className="font-display text-lg font-extrabold tabular-nums">{total > 0 ? formatMoney(total) : ''}</span>
-          </Link>
-        </div>
-      )}
 
       <nav
         className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-sheet md:hidden"

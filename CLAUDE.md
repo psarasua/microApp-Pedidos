@@ -41,7 +41,7 @@ crema de leche `paper #FBFAF6`, tinta verde bosque `ink #17302B`, verde menta pr
 durazno `mark #FFB86B` (solo cantidades y totales), línea `#E6E3D8`, alerta `stamp #D6453D`. Tipografía: Bricolage Grotesque (títulos, marca y totales,
 clase `font-display`) e Inter (texto), ambas autoalojadas con fontsource. Bordes redondeados (12–16 px) y sombra suave (`shadow-suave`).
 Estructura: barra superior con menú (cuenta, recibidos, admin), categorías en columna izquierda en PC (chips en móvil), lista de productos con campo
-de cantidad siempre visible y barra fija «Ver pedido · N artículos · total» abajo. Navegación inferior en móvil. Mantener botones táctiles de al menos 40 px y foco visible.
+de cantidad siempre visible; el resumen del pedido (cantidad y total) va como chip compacto en la barra superior, sin barras flotantes que tapen productos. Navegación inferior en móvil. Mantener botones táctiles de al menos 40 px y foco visible.
 
 ## Animaciones
 Leves y con propósito (todo en `src/index.css`, sección «Movimiento»): botones que se hunden al presionar (`scale(.97)`, 160 ms), diálogos y menú de
