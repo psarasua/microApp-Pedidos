@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useRef } from 'react'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
@@ -16,6 +17,7 @@ export function Layout() {
   const { count } = cart
   const { error } = useData()
   const { isAdmin, perfil, signOut } = useAuth()
+  const menu = useRef<HTMLDivElement>(null)
 
   function logout() {
     cart.clear()
@@ -28,54 +30,65 @@ export function Layout() {
     { to: '/historial', label: isAdmin ? 'Recibidos' : 'Mis pedidos', icon: icon.historial },
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: icon.admin }] : []),
   ]
+  const enMenu = items.slice(2) // en PC, pedidos recibidos y administración viven en el menú
+
+  const linkMenu = 'flex min-h-11 items-center gap-3 rounded-lg px-3 font-semibold hover:bg-paper'
 
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
-      <aside className="hidden border-r border-line bg-ink p-5 text-white md:block">
-        <div className="sticky top-5 flex h-[calc(100dvh-2.5rem)] flex-col">
-          <p className="mb-8 text-2xl font-extrabold tracking-tight">Pedidos</p>
-          <nav className="flex flex-col gap-1">
-            {items.map((i) => (
-              <NavLink
-                key={i.to}
-                to={i.to}
-                end={i.end}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-3 py-3 font-semibold ${isActive ? 'bg-white text-ink' : 'text-white/80 hover:bg-white/10'}`
-                }
-              >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{i.icon}</svg>
-                {i.label}
-                {!!i.badge && <span className="ml-auto rounded-full bg-mark px-2 text-sm font-bold text-ink">{i.badge}</span>}
-              </NavLink>
-            ))}
-          </nav>
-          {perfil && db.mode === 'supabase' && (
-            <div className="mt-auto flex items-center gap-3 rounded-lg bg-white/10 p-3">
-              <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-sm font-extrabold text-ink">
-                {perfil.nombre.trim().charAt(0).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{perfil.nombre}</p>
-                <button onClick={logout} className="text-sm text-white/80 underline hover:text-white">Salir</button>
-              </div>
-            </div>
-          )}
-          {db.mode === 'local' && (
-            <p className="mt-auto rounded-lg bg-white/10 p-3 text-sm text-white/80">
-              Modo local: los datos están solo en este dispositivo.
-            </p>
-          )}
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-40 border-b border-line bg-ink text-white">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 md:px-8">
+          <Link to="/" className="text-xl font-extrabold tracking-tight">Pedidos</Link>
+          <div className="ml-auto flex items-center gap-1">
+            <NavLink
+              to="/pedido"
+              className="hidden h-11 items-center gap-2 rounded-lg px-3 font-semibold hover:bg-white/10 md:flex"
+              aria-label={count ? `Pedido, ${count} artículos` : 'Pedido'}
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{icon.pedido}</svg>
+              Pedido
+              {!!count && <span className="rounded-full bg-mark px-2 text-sm font-bold text-ink">{count}</span>}
+            </NavLink>
+            <button
+              type="button"
+              popoverTarget="menu-cuenta"
+              aria-label="Menú"
+              className="grid h-11 w-11 place-items-center rounded-lg hover:bg-white/10"
+            >
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2" strokeLinecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </aside>
+      </header>
+
+      <div
+        ref={menu}
+        id="menu-cuenta"
+        popover="auto"
+        className="inset-auto right-4 top-16 m-0 w-64 rounded-xl border-2 border-line bg-sheet p-2 text-ink shadow-lg md:right-[max(2rem,calc((100vw-72rem)/2+2rem))]"
+      >
+        {perfil && db.mode === 'supabase' && (
+          <div className="mb-1 border-b border-line px-3 pb-2 pt-1">
+            <p className="truncate font-bold">{perfil.nombre}</p>
+            <p className="text-sm text-ink-soft">Usuario {perfil.usuario}</p>
+          </div>
+        )}
+        {enMenu.map((i) => (
+          <NavLink key={i.to} to={i.to} className={`${linkMenu} hidden md:flex`} onClick={() => menu.current?.hidePopover()}>
+            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{i.icon}</svg>
+            {i.label}
+          </NavLink>
+        ))}
+        {perfil && db.mode === 'supabase' ? (
+          <button type="button" onClick={logout} className={`${linkMenu} w-full text-left`}>Salir</button>
+        ) : (
+          <p className="px-3 py-2 text-sm text-ink-soft">Modo local: los datos están solo en este dispositivo.</p>
+        )}
+      </div>
 
       <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
-        {db.mode === 'supabase' && (
-          <header className="mb-3 flex items-center justify-between md:hidden">
-            <span className="text-xl font-extrabold tracking-tight">Pedidos</span>
-            <button onClick={logout} className="h-10 rounded-lg px-3 text-sm font-semibold text-ink-soft underline">Salir</button>
-          </header>
-        )}
         {error && (
           <p role="alert" className="mb-4 rounded-lg border-2 border-stamp bg-stamp/10 p-3 text-stamp">
             {error}
