@@ -43,7 +43,7 @@ export type Order = {
   status: OrderStatus
   notes: string
   items: OrderItem[]
-  cliente?: { nombre: string; usuario: string } | null
+  cliente?: { nombre: string; usuario: string; telefono?: string; direccion?: string; email?: string | null } | null
 }
 
 export type ProductInput = Omit<Product, 'id'> & { id?: string }
@@ -59,7 +59,7 @@ export interface Db {
   deleteProduct(id: string): Promise<void>
   uploadImage(blob: Blob): Promise<string>
   listOrders(): Promise<Order[]>
-  /** Devuelve el id del pedido creado (null en modo local). */
+  /** Devuelve el id del pedido creado. */
   createOrder(items: OrderItem[], notes: string): Promise<string | null>
   setOrderStatus(id: string, status: OrderStatus): Promise<void>
   deleteOrder(id: string): Promise<void>

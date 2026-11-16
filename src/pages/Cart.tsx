@@ -7,7 +7,6 @@ import { Button, Empty, inputClass } from '../components/ui'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
-import { enviarPedidoPorCorreo } from '../lib/supabase'
 import { formatMoney } from '../lib/format'
 import type { OrderItem } from '../lib/types'
 
@@ -44,11 +43,10 @@ export function Cart() {
         quantity: l.quantity,
       }))
       const id = await db.createOrder(items, notes.trim())
-      // El pedido ya está guardado: si el correo falla, el administrador puede reenviarlo desde «Recibidos».
-      if (id && db.mode === 'supabase') void enviarPedidoPorCorreo(id).catch(() => {})
       cart.clear()
       await refresh()
-      nav('/historial')
+      // Se abre el pedido recién confirmado en el historial, con el Excel listo para descargar.
+      nav('/historial', { state: { nuevo: id } })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar el pedido. Intenta de nuevo.')
     } finally {

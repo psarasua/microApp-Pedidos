@@ -59,7 +59,7 @@ export function createSupabaseDb(): Db {
       const { data } = check(
         await sb
           .from('pedidos')
-          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario), items:pedido_items(product_id:producto_id, codigo, name:nombre, price:precio, quantity:cantidad)')
+          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario, telefono, direccion, email), items:pedido_items(product_id:producto_id, codigo, name:nombre, price:precio, quantity:cantidad)')
           .order('created_at', { ascending: false }),
       )
       return (data ?? []) as unknown as Order[]

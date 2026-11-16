@@ -74,10 +74,11 @@ export const localDb: Db = {
     return load().orders.sort((a, b) => b.created_at.localeCompare(a.created_at))
   },
   async createOrder(items, notes) {
+    const id = uid()
     mutate((s) => {
-      s.orders.push({ id: uid(), created_at: new Date().toISOString(), status: 'pendiente', notes, items })
+      s.orders.push({ id, created_at: new Date().toISOString(), status: 'pendiente', notes, items })
     })
-    return null
+    return id
   },
   async setOrderStatus(id, status) {
     mutate((s) => {

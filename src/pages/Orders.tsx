@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { confirmar } from '../components/confirmar'
 import { Button, Empty, Spinner } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
-import { enviarPedidoPorCorreo } from '../lib/supabase'
+import { descargarExcelPedido } from '../lib/excelPedido'
 import { formatDate, formatMoney } from '../lib/format'
 import type { Order, OrderStatus } from '../lib/types'
 
@@ -33,9 +33,25 @@ export function Orders() {
   const cart = useCart()
   const nav = useNavigate()
   const { isAdmin } = useAuth()
-  const [open, setOpen] = useState<string | null>(null)
+  const location = useLocation()
+  // Al venir de confirmar un pedido se abre ese pedido y se ofrece la descarga del Excel.
+  const nuevo = (location.state as { nuevo?: string | null } | null)?.nuevo ?? null
+  const [open, setOpen] = useState<string | null>(nuevo)
   const [error, setError] = useState('')
-  const [aviso, setAviso] = useState('')
+  const [descargando, setDescargando] = useState<string | null>(null)
+
+  async function descargar(o: Order) {
+    setError('')
+    setDescargando(o.id)
+    try {
+      await descargarExcelPedido(o)
+    } catch {
+      setError('No se pudo generar el Excel. Intenta de nuevo.')
+    } finally {
+      setDescargando(null)
+    }
+  }
+  const pedidoNuevo = nuevo ? orders.find((o) => o.id === nuevo) : undefined
 
   async function run(fn: () => Promise<void>) {
     setError('')
@@ -64,7 +80,14 @@ export function Orders() {
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-4 text-2xl font-extrabold">{isAdmin ? 'Pedidos recibidos' : 'Mis pedidos'}</h1>
       {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
-      {aviso && <p role="status" className="mb-3 rounded-xl bg-accion-soft p-3 font-semibold text-accion-dark">{aviso}</p>}
+      {pedidoNuevo && (
+        <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-accion-soft p-4">
+          <p className="font-semibold text-accion-dark">Pedido confirmado. El Excel está listo.</p>
+          <Button onClick={() => descargar(pedidoNuevo)} disabled={descargando === pedidoNuevo.id}>
+            {descargando === pedidoNuevo.id ? 'Preparando…' : 'Descargar Excel'}
+          </Button>
+        </div>
+      )}
       <ul className="space-y-3">
         {orders.map((o) => {
           const isOpen = open === o.id
@@ -90,7 +113,10 @@ export function Orders() {
                   </ul>
                   {o.notes && <p className="mt-3 rounded-lg bg-paper p-3 text-sm">{o.notes}</p>}
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button onClick={() => repeat(o)} className="h-10 text-sm">Repetir pedido</Button>
+                    <Button onClick={() => descargar(o)} disabled={descargando === o.id} className="h-10 text-sm">
+                      {descargando === o.id ? 'Preparando…' : 'Descargar Excel'}
+                    </Button>
+                    <Button variant="ghost" onClick={() => repeat(o)}>Repetir pedido</Button>
                   </div>
                   {isAdmin && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -99,23 +125,6 @@ export function Orders() {
                         Marcar {s}
                       </Button>
                     ))}
-                    {db.mode === 'supabase' && (
-                      <Button
-                        variant="ghost"
-                        onClick={async () => {
-                          setError('')
-                          setAviso('')
-                          try {
-                            await enviarPedidoPorCorreo(o.id, true)
-                            setAviso('El pedido se envió por correo.')
-                          } catch (e) {
-                            setError(e instanceof Error ? e.message : 'No se pudo enviar el correo')
-                          }
-                        }}
-                      >
-                        Enviar por correo
-                      </Button>
-                    )}
                     <a href={whatsappText(o)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center rounded-lg border-2 border-line px-4 text-sm font-semibold hover:border-ink">
                       Enviar por WhatsApp
                     </a>
