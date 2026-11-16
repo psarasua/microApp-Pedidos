@@ -21,7 +21,8 @@ export function createSupabaseDb(): Db {
       if (c.id) check(await sb.from('categorias').update({ nombre: c.name }).eq('id', c.id))
       else check(await sb.from('categorias').insert({ nombre: c.name }))
     },
-    async deleteCategory(id) {
+    async deleteCategory(id, conProductos = false) {
+      if (conProductos) check(await sb.from('productos').delete().eq('categoria_id', id))
       check(await sb.from('categorias').delete().eq('id', id))
     },
     async listProducts() {

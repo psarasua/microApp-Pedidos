@@ -52,7 +52,8 @@ export interface Db {
   mode: 'local' | 'supabase'
   listCategories(): Promise<Category[]>
   saveCategory(c: { id?: string; name: string }): Promise<void>
-  deleteCategory(id: string): Promise<void>
+  /** Con `conProductos` también borra los productos de la categoría; si no, quedan sin categoría. */
+  deleteCategory(id: string, conProductos?: boolean): Promise<void>
   listProducts(): Promise<Product[]>
   saveProduct(p: ProductInput): Promise<void>
   deleteProduct(id: string): Promise<void>

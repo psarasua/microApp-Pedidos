@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { confirmar } from '../components/confirmar'
+import { confirmar, elegir } from '../components/confirmar'
 import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Button, Empty, Field, Input, inputClass, Spinner } from '../components/ui'
@@ -248,9 +248,15 @@ function Categories() {
                   <Button variant="ghost" onClick={() => setEditing({ id: c.id, name: c.name })}>Editar</Button>
                   <Button
                     variant="danger"
-                    onClick={async () =>
-                      (await confirmar(`¿Eliminar "${c.name}"? Sus productos quedan sin categoría.`, 'Eliminar')) && run(() => db.deleteCategory(c.id))
-                    }
+                    onClick={async () => {
+                      const n = count(c.id)
+                      if (n === 0) return (await confirmar(`¿Eliminar la categoría "${c.name}"?`, 'Eliminar')) && run(() => db.deleteCategory(c.id))
+                      const accion = await elegir(`"${c.name}" tiene ${n} ${n === 1 ? 'producto' : 'productos'}. ¿Qué hacemos con ${n === 1 ? 'él' : 'ellos'}?`, [
+                        { valor: 'todo', texto: `Eliminar categoría y ${n === 1 ? 'el producto' : 'los productos'}` },
+                        { valor: 'categoria', texto: 'Solo la categoría (quedan sin categoría)' },
+                      ])
+                      if (accion) await run(() => db.deleteCategory(c.id, accion === 'todo'))
+                    }}
                   >
                     Eliminar
                   </Button>

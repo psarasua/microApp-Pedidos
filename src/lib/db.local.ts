@@ -43,12 +43,14 @@ export const localDb: Db = {
       } else s.categories.push({ id: uid(), name: c.name })
     })
   },
-  async deleteCategory(id) {
+  async deleteCategory(id, conProductos = false) {
     mutate((s) => {
       s.categories = s.categories.filter((c) => c.id !== id)
-      s.products.forEach((p) => {
-        if (p.category_id === id) p.category_id = null
-      })
+      if (conProductos) s.products = s.products.filter((p) => p.category_id !== id)
+      else
+        s.products.forEach((p) => {
+          if (p.category_id === id) p.category_id = null
+        })
     })
   },
   async listProducts() {
