@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { formatMoney } from '../lib/format'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { Logo } from './Logo'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
@@ -53,14 +54,7 @@ export function Layout() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 md:px-8">
-          <Link to="/" className="font-display flex items-center gap-2 text-xl font-extrabold">
-            <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden="true">
-              <rect width="32" height="32" rx="9" fill="var(--color-accion)" />
-              <path d="M16 6.5c3.8 4.6 6.5 7.9 6.5 11.3a6.5 6.5 0 0 1-13 0c0-3.4 2.7-6.7 6.5-11.3z" fill="#fbfaf6" />
-              <path d="m12.8 18.2 2.3 2.3 4.2-4.6" fill="none" stroke="var(--color-accion)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Pedidos
-          </Link>
+          <Link to="/" aria-label="Pedidos, inicio"><Logo /></Link>
           <div className="ml-auto flex items-center gap-1">
             <NavLink
               to="/pedido"

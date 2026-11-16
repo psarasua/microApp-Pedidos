@@ -42,6 +42,10 @@ durazno `mark #FFB86B` (solo cantidades y totales), línea `#E6E3D8`, alerta `st
 clase `font-display`) e Inter (texto), ambas autoalojadas con fontsource. Bordes redondeados (12–16 px) y sombra suave (`shadow-suave`).
 Estructura: barra superior con menú (cuenta, recibidos, admin), categorías en columna izquierda en PC (chips en móvil), lista de productos con campo
 de cantidad siempre visible; el resumen del pedido (cantidad y total) va como chip compacto en la barra superior, sin barras flotantes que tapen productos. Navegación inferior en móvil. Mantener botones táctiles de al menos 40 px y foco visible.
+Logo: una gota de leche con un tilde (pedido listo). Componentes en `src/components/Logo.tsx`: `LogoMark` (ícono cuadrado), `Logo` (marca + «pedidos», donde la gota
+reemplaza el punto de la «i», con la «ı» sin punto de Bricolage) y `LogoCargando` (la gota se llena de leche con olas, dibuja el tilde y repite; con «reducir movimiento»
+queda quieta y llena). `Spinner` usa `LogoCargando`, y `index.html` trae el mismo cargador estático mientras carga el JavaScript. El ícono de la app
+(`public/favicon.svg` y los PNG) sale de la misma gota; los PNG se regeneran con sharp a partir de esas rutas SVG.
 
 ## Animaciones
 Leves y con propósito (todo en `src/index.css`, sección «Movimiento»): botones que se hunden al presionar (`scale(.97)`, 160 ms), diálogos y menú de

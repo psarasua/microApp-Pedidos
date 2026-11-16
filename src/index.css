@@ -95,9 +95,29 @@ dialog.modal::backdrop { transition: opacity 220ms var(--ease-out); }
 }
 .latido { animation: latido 240ms var(--ease-out); }
 
+/* Logo al cargar: la gota se llena de leche (con olas), dibuja el tilde y se desvanece para repetir */
+.logo-carga .leche { animation: leche 3.2s ease-in-out infinite; }
+.logo-carga .olas { animation: olas 1s linear infinite; }
+.logo-carga .tilde { stroke-dasharray: 1; animation: tilde 3.2s var(--ease-out) infinite; }
+@keyframes leche {
+  0% { transform: translateY(26px); opacity: 1; }
+  64% { transform: translateY(5px); }
+  93% { transform: translateY(5px); opacity: 1; }
+  100% { transform: translateY(5px); opacity: 0; }
+}
+@keyframes olas { to { transform: translateX(16px); } }
+@keyframes tilde {
+  0%, 66% { stroke-dashoffset: 1; opacity: 1; }
+  78%, 93% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
 /* Con «reducir movimiento» queda solo el fundido: sin desplazamientos, escalas ni latidos */
 @media (prefers-reduced-motion: reduce) {
   :root { --entra: none; --entra-menu: none; }
   button:not(:disabled):active { transform: none; }
   .latido { animation: none; }
+  .logo-carga .leche { animation: none; transform: translateY(5px); }
+  .logo-carga .olas, .logo-carga .tilde { animation: none; }
+  .logo-carga .tilde { stroke-dashoffset: 0; }
 }

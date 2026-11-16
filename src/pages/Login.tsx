@@ -25,7 +25,7 @@ export function Login() {
   }
 
   return (
-    <AuthLayout title="Pedidos" subtitle="Entra con tu usuario y tu contraseña.">
+    <AuthLayout title="Entrar" subtitle="Escribe tu usuario y tu contraseña.">
       <form onSubmit={submit} className="space-y-4 rounded-2xl border-2 border-line bg-sheet p-5">
         <Field label="Usuario">
           <Input

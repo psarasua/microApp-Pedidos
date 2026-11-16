@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
+import { LogoCargando } from './Logo'
 
 const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 font-semibold disabled:opacity-50 disabled:pointer-events-none'
 
@@ -41,5 +42,10 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 }
 
 export function Spinner() {
-  return <p className="py-12 text-center text-ink-soft">Cargando…</p>
+  return (
+    <div role="status" className="grid justify-items-center gap-2 py-16">
+      <LogoCargando />
+      <p className="text-sm text-ink-soft">Cargando…</p>
+    </div>
+  )
 }
