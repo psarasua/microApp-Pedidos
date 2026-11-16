@@ -9,9 +9,9 @@ export const sb = url && key ? createClient(url, key) : null
 /** El usuario es un ID numérico asignado por el sistema; Supabase Auth necesita un email, así que se deriva uno interno. */
 export const emailDe = (usuario: string) => `${usuario}@clientes.invalid`
 
-/** Llama a la función `clientes` (registro y gestión de claves) y devuelve su respuesta o lanza el mensaje de error legible. */
-export async function invokeClientes<T = { ok: true }>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await sb!.functions.invoke('clientes', { body })
+/** Llama a una función de borde y devuelve su respuesta o lanza el mensaje de error legible. */
+async function invocar<T>(nombre: string, body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await sb!.functions.invoke(nombre, { body })
   if (!error) return data as T
   let message = 'No se pudo completar la acción. Intenta de nuevo.'
   const response = (error as { context?: Response }).context
@@ -25,3 +25,10 @@ export async function invokeClientes<T = { ok: true }>(body: Record<string, unkn
   }
   throw new Error(message)
 }
+
+/** Función `clientes` (registro y gestión de claves). */
+export const invokeClientes = <T = { ok: true }>(body: Record<string, unknown>) => invocar<T>('clientes', body)
+
+/** Función `pedido-correo`: envía el Excel del pedido por correo. El administrador puede reenviarlo (`reenviar`). */
+export const enviarPedidoPorCorreo = (pedido_id: string, reenviar = false) =>
+  invocar<{ ok: true; ya_enviado?: boolean }>('pedido-correo', { pedido_id, reenviar })

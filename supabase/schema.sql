@@ -44,8 +44,10 @@ create table if not exists pedidos (
   created_at timestamptz not null default now(),
   estado text not null default 'pendiente' check (estado in ('pendiente','enviado','entregado')),
   notas text not null default '' constraint pedidos_notas_largo check (char_length(notas) <= 500),
-  cliente_id uuid default auth.uid() references perfiles(id) on delete set null
+  cliente_id uuid default auth.uid() references perfiles(id) on delete set null,
+  correo_enviado_at timestamptz -- cuándo la función pedido-correo envió el Excel (null = todavía no)
 );
+alter table pedidos add column if not exists correo_enviado_at timestamptz;
 
 create table if not exists pedido_items (
   id uuid primary key default gen_random_uuid(),

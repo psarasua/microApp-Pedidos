@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
+import { enviarPedidoPorCorreo } from '../lib/supabase'
 import { formatDate, formatMoney } from '../lib/format'
 import type { Order, OrderStatus } from '../lib/types'
 
@@ -34,6 +35,7 @@ export function Orders() {
   const { isAdmin } = useAuth()
   const [open, setOpen] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [aviso, setAviso] = useState('')
 
   async function run(fn: () => Promise<void>) {
     setError('')
@@ -62,6 +64,7 @@ export function Orders() {
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-4 text-2xl font-extrabold">{isAdmin ? 'Pedidos recibidos' : 'Mis pedidos'}</h1>
       {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
+      {aviso && <p role="status" className="mb-3 rounded-xl bg-accion-soft p-3 font-semibold text-accion-dark">{aviso}</p>}
       <ul className="space-y-3">
         {orders.map((o) => {
           const isOpen = open === o.id
@@ -96,6 +99,23 @@ export function Orders() {
                         Marcar {s}
                       </Button>
                     ))}
+                    {db.mode === 'supabase' && (
+                      <Button
+                        variant="ghost"
+                        onClick={async () => {
+                          setError('')
+                          setAviso('')
+                          try {
+                            await enviarPedidoPorCorreo(o.id, true)
+                            setAviso('El pedido se envió por correo.')
+                          } catch (e) {
+                            setError(e instanceof Error ? e.message : 'No se pudo enviar el correo')
+                          }
+                        }}
+                      >
+                        Enviar por correo
+                      </Button>
+                    )}
                     <a href={whatsappText(o)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center rounded-lg border-2 border-line px-4 text-sm font-semibold hover:border-ink">
                       Enviar por WhatsApp
                     </a>

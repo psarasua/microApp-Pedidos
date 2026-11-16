@@ -77,6 +77,7 @@ export const localDb: Db = {
     mutate((s) => {
       s.orders.push({ id: uid(), created_at: new Date().toISOString(), status: 'pendiente', notes, items })
     })
+    return null
   },
   async setOrderStatus(id, status) {
     mutate((s) => {

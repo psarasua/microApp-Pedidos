@@ -19,6 +19,10 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `src/lib/cart.tsx` carrito en `localStorage`
 - `src/lib/auth.tsx` sesión y perfil; `src/lib/supabase.ts` cliente compartido
 - `supabase/functions/clientes/index.ts` registro de clientes y cambio de clave por el admin (se despliega con verify_jwt desactivado)
+- `supabase/functions/pedido-correo/` (`index.ts` + `excel.ts`, verify_jwt desactivado): al confirmar un pedido la app la llama y envía por Brevo un correo con el
+  Excel adjunto (datos del cliente, artículos, cantidades y total) a `PEDIDOS_DESTINO` y, en copia, a `PEDIDOS_COPIA` (secretos, listas separadas por comas).
+  Un pedido se envía una sola vez (`pedidos.correo_enviado_at`, reserva atómica); si falla, el pedido queda guardado y el admin lo reenvía con «Enviar por correo»
+  en Recibidos. El «Reply-To» es el correo del cliente. Solo el dueño del pedido o un admin pueden pedir el envío. Comparte los secretos de Brevo con `clientes`.
 - `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Register, Recover, ForgotUser, ForcePasswordChange
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
 - `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). Si se agrega un servicio externo (fuentes, imágenes,

@@ -59,7 +59,8 @@ export interface Db {
   deleteProduct(id: string): Promise<void>
   uploadImage(blob: Blob): Promise<string>
   listOrders(): Promise<Order[]>
-  createOrder(items: OrderItem[], notes: string): Promise<void>
+  /** Devuelve el id del pedido creado (null en modo local). */
+  createOrder(items: OrderItem[], notes: string): Promise<string | null>
   setOrderStatus(id: string, status: OrderStatus): Promise<void>
   deleteOrder(id: string): Promise<void>
   listClientes(): Promise<Perfil[]>

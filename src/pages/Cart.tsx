@@ -7,6 +7,7 @@ import { Button, Empty, inputClass } from '../components/ui'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
+import { enviarPedidoPorCorreo } from '../lib/supabase'
 import { formatMoney } from '../lib/format'
 import type { OrderItem } from '../lib/types'
 
@@ -42,7 +43,9 @@ export function Cart() {
         price: l.product.price,
         quantity: l.quantity,
       }))
-      await db.createOrder(items, notes.trim())
+      const id = await db.createOrder(items, notes.trim())
+      // El pedido ya está guardado: si el correo falla, el administrador puede reenviarlo desde «Recibidos».
+      if (id && db.mode === 'supabase') void enviarPedidoPorCorreo(id).catch(() => {})
       cart.clear()
       await refresh()
       nav('/historial')
