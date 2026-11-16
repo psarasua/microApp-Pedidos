@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InstallTip } from '../components/InstallTip'
+import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Stepper } from '../components/Stepper'
 import { Empty, inputClass, Spinner } from '../components/ui'
@@ -13,6 +14,7 @@ export function Catalog() {
   const cart = useCart()
   const [cat, setCat] = useState<string | 'all'>('all')
   const [q, setQ] = useState('')
+  const [catAbierta, setCatAbierta] = useState(false)
   // La lista es más rápida para pedir con un catálogo largo; las fotos ayudan a reconocer productos.
   const [vista, setVista] = useState<'lista' | 'cuadricula'>(() => {
     try {
@@ -49,8 +51,10 @@ export function Catalog() {
       </Empty>
     )
 
-  const chip = (active: boolean) =>
-    `shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${active ? 'border-accion bg-accion text-white' : 'border-line bg-sheet hover:border-accion/50'}`
+  function elegirCat(id: string) {
+    setCat(id)
+    setCatAbierta(false)
+  }
 
   const cuenta = (id: string) => products.filter((p) => p.category_id === id).length
   const lado = (active: boolean) =>
@@ -90,13 +94,38 @@ export function Catalog() {
             className={`${inputClass} pl-11 shadow-suave`}
           />
         </div>
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0 lg:hidden">
-          <button className={chip(cat === 'all')} onClick={() => setCat('all')}>Todos</button>
-          {categories.map((c) => (
-            <button key={c.id} className={chip(cat === c.id)} onClick={() => setCat(c.id)}>{c.name}</button>
-          ))}
-        </div>
+        {/* Móvil y tablet: una sola categoría visible y el resto en una hoja, en vez de una fila que se desliza. */}
+        <button
+          type="button"
+          onClick={() => setCatAbierta(true)}
+          className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-sheet px-4 text-left font-semibold lg:hidden"
+          aria-haspopup="dialog"
+        >
+          <span className="truncate">
+            <span className="font-normal text-ink-soft">Categoría: </span>
+            {cat === 'all' ? 'Todas' : (categories.find((c) => c.id === cat)?.name ?? 'Todas')}
+          </span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 shrink-0 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
       </div>
+      {catAbierta && (
+        <Modal title="Categorías" onClose={() => setCatAbierta(false)}>
+          <div className="space-y-1">
+            <button className={lado(cat === 'all')} aria-current={cat === 'all' || undefined} onClick={() => elegirCat('all')}>
+              <span>Todas</span>
+              <span className="text-sm tabular-nums text-ink-soft">{products.length}</span>
+            </button>
+            {categories.map((c) => (
+              <button key={c.id} className={lado(cat === c.id)} aria-current={cat === c.id || undefined} onClick={() => elegirCat(c.id)}>
+                <span className="truncate">{c.name}</span>
+                <span className="text-sm tabular-nums text-ink-soft">{cuenta(c.id)}</span>
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
 
       <div className="mb-3 mt-1 flex items-center justify-between gap-3">
         <p className="text-sm text-ink-soft" aria-live="polite">{visible.length} {visible.length === 1 ? 'producto' : 'productos'}</p>
@@ -118,21 +147,21 @@ export function Catalog() {
       {visible.length === 0 ? (
         <Empty title="No hay productos con ese filtro" />
       ) : vista === 'lista' ? (
-        <ul className="space-y-2">
+        <ul className="grid gap-2 xl:grid-cols-2">
           {visible.map((p) => {
             const n = cart.qty(p.id)
             return (
-              <li key={p.id} className={`flex items-center gap-3 rounded-2xl border bg-sheet p-3 transition-colors duration-150 ${n ? 'border-accion bg-accion-soft/40' : 'border-line'}`}>
-                <ProductPhoto src={p.image_url} alt={p.name} className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-xl border border-line" />
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 font-semibold leading-snug">{p.name}</p>
-                  <p className="mt-0.5 text-sm text-ink-soft">
-                    {p.codigo && <span className="font-semibold text-accion">Cód. {p.codigo}</span>}
-                    {p.codigo && ' · '}
-                    <span className={`tabular-nums ${p.price > 0 ? 'font-bold text-ink' : ''}`}>{formatPrice(p.price)}</span>
-                  </p>
+              <li key={p.id} className={`flex gap-3 rounded-2xl border bg-sheet p-3 transition-colors duration-150 ${n ? 'border-accion bg-accion-soft/40' : 'border-line'}`}>
+                <ProductPhoto src={p.image_url} alt={p.name} className="h-22 w-22 shrink-0 rounded-xl border border-line" />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  {/* El nombre se lee completo (hasta 3 líneas): dos sabores distintos no pueden verse iguales. */}
+                  <p className="line-clamp-3 font-semibold leading-snug">{p.name}</p>
+                  {p.codigo && <p className="text-sm font-semibold text-accion">Cód. {p.codigo}</p>}
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                    <span className={`tabular-nums ${p.price > 0 ? 'font-bold' : 'text-sm text-ink-soft'}`}>{formatPrice(p.price)}</span>
+                    <Stepper value={n} onChange={(v) => cart.setQty(p.id, v)} label={p.name} />
+                  </div>
                 </div>
-                <Stepper value={n} onChange={(v) => cart.setQty(p.id, v)} label={p.name} />
               </li>
             )
           })}

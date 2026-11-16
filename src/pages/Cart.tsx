@@ -60,14 +60,21 @@ export function Cart() {
       <div className="ticket px-5 py-8 shadow-[0_1px_0_var(--color-line)]">
         <ul className="divide-y divide-dashed divide-line">
           {lines.map(({ product: p, quantity }) => (
-            <li key={p.id} className="flex items-center gap-3 py-3">
-              <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
+            <li key={p.id} className="flex gap-3 py-3">
+              <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-xl border border-line" />
               <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 font-semibold leading-tight">{p.name}</p>
-                <p className="truncate text-sm text-ink-soft">{p.codigo && `Cód. ${p.codigo} · `}{p.price > 0 ? `${formatMoney(p.price)} c/u` : 'Sin precio'}</p>
-                {p.price > 0 && <p className="font-bold">{formatMoney(p.price * quantity)}</p>}
+                {/* Aquí se verifica el pedido: el nombre va completo, sin cortar. */}
+                <p className="font-semibold leading-snug">{p.name}</p>
+                <p className="text-sm text-ink-soft">
+                  {p.codigo && <span className="font-semibold text-accion">Cód. {p.codigo}</span>}
+                  {p.codigo && <br />}
+                  {p.price > 0 ? `${formatMoney(p.price)} c/u` : 'Sin precio'}
+                </p>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span className="font-bold tabular-nums">{p.price > 0 ? formatMoney(p.price * quantity) : ''}</span>
+                  <Stepper value={quantity} onChange={(n) => cart.setQty(p.id, n)} label={p.name} />
+                </div>
               </div>
-              <Stepper value={quantity} onChange={(n) => cart.setQty(p.id, n)} label={p.name} />
             </li>
           ))}
         </ul>
