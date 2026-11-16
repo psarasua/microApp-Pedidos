@@ -12,7 +12,7 @@ import type { Order, OrderStatus } from '../lib/types'
 const STATUSES: OrderStatus[] = ['pendiente', 'enviado', 'entregado']
 const statusStyle: Record<OrderStatus, string> = {
   pendiente: 'bg-mark text-ink',
-  enviado: 'bg-carbon text-white',
+  enviado: 'bg-accion text-white',
   entregado: 'bg-ink text-white',
 }
 

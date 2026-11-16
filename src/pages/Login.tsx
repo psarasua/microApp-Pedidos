@@ -49,10 +49,10 @@ export function Login() {
       </form>
 
       <div className="mt-4 flex flex-col items-center gap-2">
-        <Link to="/recuperar" className="font-semibold text-carbon underline">Olvidé mi contraseña</Link>
-        <Link to="/usuario" className="font-semibold text-carbon underline">Olvidé mi usuario</Link>
+        <Link to="/recuperar" className="font-semibold text-accion underline">Olvidé mi contraseña</Link>
+        <Link to="/usuario" className="font-semibold text-accion underline">Olvidé mi usuario</Link>
         <p className="text-ink-soft">
-          ¿Primera vez? <Link to="/registro" className="font-semibold text-carbon underline">Crear cuenta</Link>
+          ¿Primera vez? <Link to="/registro" className="font-semibold text-accion underline">Crear cuenta</Link>
         </p>
       </div>
     </AuthLayout>

@@ -97,7 +97,7 @@ export function Register() {
         </div>
         <p className="mt-4 text-center text-ink-soft">
           ¿No te llega? Revisa la carpeta de spam o{' '}
-          <button type="button" className="font-semibold text-carbon underline" onClick={() => { setError(''); setStep('datos') }}>cambia el correo</button>.
+          <button type="button" className="font-semibold text-accion underline" onClick={() => { setError(''); setStep('datos') }}>cambia el correo</button>.
         </p>
       </AuthLayout>
     )
@@ -121,7 +121,7 @@ export function Register() {
         <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Enviando código…' : 'Crear cuenta'}</Button>
       </form>
       <p className="mt-4 text-center text-ink-soft">
-        ¿Ya tienes cuenta? <Link to="/" className="font-semibold text-carbon underline">Entrar</Link>
+        ¿Ya tienes cuenta? <Link to="/" className="font-semibold text-accion underline">Entrar</Link>
       </p>
     </AuthLayout>
   )

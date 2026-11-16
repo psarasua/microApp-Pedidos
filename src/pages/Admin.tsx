@@ -72,10 +72,10 @@ function Products() {
       ) : (
         <ul className="space-y-2">
           {shown.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 rounded-xl border-2 border-line bg-sheet p-3">
-              <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
+            <li key={p.id} className="flex items-center gap-3 rounded-2xl border border-line bg-sheet p-3">
+              <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-xl border border-line" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{p.name}</p>
+                <p className="line-clamp-2 font-semibold leading-snug">{p.name}</p>
                 <p className="truncate text-sm text-ink-soft">{p.codigo && `Cód. ${p.codigo} · `}{catName(p.category_id)}</p>
                 <p className={p.price > 0 ? 'font-bold' : 'text-sm font-semibold text-stamp'}>{formatPrice(p.price)}</p>
               </div>
@@ -143,7 +143,7 @@ function ProductForm({ product, categories, onClose, onSaved }: { product: Produ
         <div className="flex items-center gap-4">
           <ProductPhoto src={image} alt={name || 'Producto'} className="h-24 w-24 shrink-0 rounded-xl" />
           <div className="space-y-2">
-            <label className="inline-flex h-10 cursor-pointer items-center rounded-lg border-2 border-line px-4 text-sm font-semibold hover:border-ink focus-within:outline-3 focus-within:outline-carbon">
+            <label className="inline-flex h-10 cursor-pointer items-center rounded-lg border-2 border-line px-4 text-sm font-semibold hover:border-ink focus-within:outline-3 focus-within:outline-accion">
               {image ? 'Cambiar foto' : 'Agregar foto'}
               <input type="file" accept="image/*" className="sr-only" onChange={(e) => pickImage(e.target.files?.[0])} />
             </label>
@@ -223,7 +223,7 @@ function Categories() {
       ) : (
         <ul className="space-y-2">
           {categories.map((c) => (
-            <li key={c.id} className="flex items-center gap-3 rounded-xl border-2 border-line bg-sheet p-3">
+            <li key={c.id} className="flex items-center gap-3 rounded-2xl border border-line bg-sheet p-3">
               {editing?.id === c.id ? (
                 <form
                   className="flex flex-1 gap-2"
@@ -315,7 +315,7 @@ function Clients() {
       ) : (
         <ul className="space-y-2">
           {clients.map((c) => (
-            <li key={c.id} className="rounded-xl border-2 border-line bg-sheet p-3">
+            <li key={c.id} className="rounded-2xl border border-line bg-sheet p-3">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{c.nombre}</p>

@@ -67,7 +67,7 @@ export function Recover() {
           ¿No te llega nada? Revisa el spam o pídele al administrador que restablezca tu contraseña.
         </p>
         <p className="mt-2 text-center">
-          <button type="button" className="font-semibold text-carbon underline" onClick={() => { setError(''); setStep('pedir') }}>Usar otro usuario o correo</button>
+          <button type="button" className="font-semibold text-accion underline" onClick={() => { setError(''); setStep('pedir') }}>Usar otro usuario o correo</button>
         </p>
       </AuthLayout>
     )
@@ -82,7 +82,7 @@ export function Recover() {
         <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Enviando…' : 'Enviar código'}</Button>
       </form>
       <p className="mt-4 text-center">
-        <Link to="/" className="font-semibold text-carbon underline">Volver a entrar</Link>
+        <Link to="/" className="font-semibold text-accion underline">Volver a entrar</Link>
       </p>
     </AuthLayout>
   )

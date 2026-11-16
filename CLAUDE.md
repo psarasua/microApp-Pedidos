@@ -31,9 +31,12 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
   Las fotos nuevas que se suben desde Admin van a Supabase Storage.
 
 ## Diseño
-Idea: talonario de pedidos. Paleta: tinta `#14213D`, papel `#F6F7F9`, azul carbón `#2347C5`, rojo sello `#D93A2B`,
-resaltador `#FFD93D` (solo para cantidades y totales). Tipografía: Schibsted Grotesk. Navegación inferior en móvil,
-barra lateral en PC. Mantener botones táctiles de al menos 40 px y foco visible.
+Identidad «Lácteo fresco»: limpia, amable y pensada para productos de heladera (el catálogo es de lácteos). Tokens en `src/index.css` (bloque `@theme`):
+crema de leche `paper #FBFAF6`, tinta verde bosque `ink #17302B`, verde menta profundo `accion #0F7B5F` (acciones y selección; `accion-soft #E3F3ED`),
+durazno `mark #FFB86B` (solo cantidades y totales), línea `#E6E3D8`, alerta `stamp #D6453D`. Tipografía: Bricolage Grotesque (títulos, marca y totales,
+clase `font-display`) e Inter (texto), ambas autoalojadas con fontsource. Bordes redondeados (12–16 px) y sombra suave (`shadow-suave`).
+Estructura: barra superior con menú (cuenta, recibidos, admin), categorías en columna izquierda en PC (chips en móvil), lista de productos con campo
+de cantidad siempre visible y barra fija «Ver pedido · N artículos · total» abajo. Navegación inferior en móvil. Mantener botones táctiles de al menos 40 px y foco visible.
 
 ## Animaciones
 Leves y con propósito (todo en `src/index.css`, sección «Movimiento»): botones que se hunden al presionar (`scale(.97)`, 160 ms), diálogos y menú de

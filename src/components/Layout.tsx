@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { formatMoney } from '../lib/format'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
@@ -24,7 +25,10 @@ function Insignia({ n, className, animar }: { n: number; className: string; anim
 export function Layout() {
   const cart = useCart()
   const { count } = cart
-  const { error } = useData()
+  const { error, products } = useData()
+  const { pathname } = useLocation()
+  const total = cart.totalFor(products)
+  const mostrarBarra = count > 0 && pathname !== '/pedido'
   const { isAdmin, perfil, signOut } = useAuth()
   const menu = useRef<HTMLDivElement>(null)
   const montado = useRef(false) // el latido no se dispara al cargar la página
@@ -49,13 +53,20 @@ export function Layout() {
 
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-40 border-b border-line bg-ink text-white">
+      <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 md:px-8">
-          <Link to="/" className="text-xl font-extrabold tracking-tight">Pedidos</Link>
+          <Link to="/" className="font-display flex items-center gap-2 text-xl font-extrabold">
+            <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden="true">
+              <rect width="32" height="32" rx="9" fill="var(--color-accion)" />
+              <path d="M16 6.5c3.8 4.6 6.5 7.9 6.5 11.3a6.5 6.5 0 0 1-13 0c0-3.4 2.7-6.7 6.5-11.3z" fill="#fbfaf6" />
+              <path d="m12.8 18.2 2.3 2.3 4.2-4.6" fill="none" stroke="var(--color-accion)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Pedidos
+          </Link>
           <div className="ml-auto flex items-center gap-1">
             <NavLink
               to="/pedido"
-              className="hidden h-11 items-center gap-2 rounded-lg px-3 font-semibold hover:bg-white/10 md:flex"
+              className="hidden h-11 items-center gap-2 rounded-xl px-3 font-semibold hover:bg-line/60 md:flex"
               aria-label={count ? `Pedido, ${count} artículos` : 'Pedido'}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{icon.pedido}</svg>
@@ -66,7 +77,7 @@ export function Layout() {
               type="button"
               popoverTarget="menu-cuenta"
               aria-label="Menú"
-              className="grid h-11 w-11 place-items-center rounded-lg hover:bg-white/10"
+              className="grid h-11 w-11 place-items-center rounded-xl hover:bg-line/60"
             >
               <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2" strokeLinecap="round">
                 <path d="M4 7h16M4 12h16M4 17h16" />
@@ -80,7 +91,7 @@ export function Layout() {
         ref={menu}
         id="menu-cuenta"
         popover="auto"
-        className="inset-auto right-4 top-16 m-0 w-64 rounded-xl border-2 border-line bg-sheet p-2 text-ink shadow-lg md:right-[max(2rem,calc((100vw-72rem)/2+2rem))]"
+        className="inset-auto right-4 top-16 m-0 w-64 rounded-2xl border border-line bg-sheet p-2 text-ink shadow-suave md:right-[max(2rem,calc((100vw-72rem)/2+2rem))]"
       >
         {perfil && db.mode === 'supabase' && (
           <div className="mb-1 border-b border-line px-3 pb-2 pt-1">
@@ -101,7 +112,7 @@ export function Layout() {
         )}
       </div>
 
-      <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
+      <main className={`mx-auto w-full max-w-6xl px-4 pt-5 md:px-8 ${mostrarBarra ? 'pb-44 md:pb-28' : 'pb-28 md:pb-10'}`}>
         {error && (
           <p role="alert" className="mb-4 rounded-lg border-2 border-stamp bg-stamp/10 p-3 text-stamp">
             {error}
@@ -109,6 +120,18 @@ export function Layout() {
         )}
         <Outlet />
       </main>
+
+      {mostrarBarra && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 px-4 md:bottom-6">
+          <Link
+            to="/pedido"
+            className="pointer-events-auto mx-auto flex min-h-14 max-w-xl items-center justify-between gap-3 rounded-2xl bg-accion px-5 text-white shadow-suave hover:bg-accion-dark"
+          >
+            <span className="font-semibold">Ver pedido · {count} {count === 1 ? 'artículo' : 'artículos'}</span>
+            <span className="font-display text-lg font-extrabold tabular-nums">{total > 0 ? formatMoney(total) : ''}</span>
+          </Link>
+        </div>
+      )}
 
       <nav
         className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-sheet md:hidden"
@@ -120,7 +143,7 @@ export function Layout() {
             to={i.to}
             end={i.end}
             className={({ isActive }) =>
-              `relative flex flex-col items-center gap-0.5 py-2.5 text-xs font-semibold ${isActive ? 'text-carbon' : 'text-ink-soft'}`
+              `relative flex flex-col items-center gap-0.5 py-2.5 text-xs font-semibold ${isActive ? 'text-accion' : 'text-ink-soft'}`
             }
           >
             <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{i.icon}</svg>

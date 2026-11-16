@@ -7,7 +7,7 @@ export function Stepper({ value, onChange, label, size = 'md' }: Props) {
   }`
   return (
     <div
-      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border-2 transition-colors duration-150 ${value > 0 ? 'border-ink' : 'border-line'} bg-sheet`}
+      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-xl border-2 transition-colors duration-150 ${value > 0 ? 'border-accion' : 'border-line'} bg-sheet`}
       role="group"
       aria-label={label}
     >

@@ -1,17 +1,22 @@
 @import "tailwindcss";
-@import "@fontsource-variable/schibsted-grotesk/wght.css";
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/bricolage-grotesque/wght.css";
 
 @theme {
-  --font-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --color-ink: #14213d;
-  --color-ink-soft: #4b5a78;
-  --color-paper: #f6f7f9;
+  /* Lácteo fresco: crema de leche, verde menta profundo para actuar y durazno para cantidades y totales */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #17302b;
+  --color-ink-soft: #55706a;
+  --color-paper: #fbfaf6;
   --color-sheet: #ffffff;
-  --color-carbon: #2347c5;
-  --color-carbon-dark: #1a37a0;
-  --color-stamp: #d93a2b;
-  --color-mark: #ffd93d;
-  --color-line: #d9dee7;
+  --color-accion: #0f7b5f;
+  --color-accion-dark: #0a5f49;
+  --color-accion-soft: #e3f3ed;
+  --color-stamp: #d6453d;
+  --color-mark: #ffb86b;
+  --color-line: #e6e3d8;
+  --shadow-suave: 0 1px 2px rgb(23 48 43 / 0.06), 0 4px 14px rgb(23 48 43 / 0.06);
 }
 
 html, body, #root { height: 100%; }
@@ -22,7 +27,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-:focus-visible { outline: 3px solid var(--color-carbon); outline-offset: 2px; }
+/* Títulos y cifras grandes con la tipografía de marca */
+h1, h2, .font-display { font-family: var(--font-display); letter-spacing: -0.015em; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 3px solid var(--color-accion); outline-offset: 2px; }
 
 /* Borde perforado del ticket de pedido */
 .ticket {

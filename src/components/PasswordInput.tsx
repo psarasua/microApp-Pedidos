@@ -25,9 +25,9 @@ export function PasswordInput({ id, label, value, onChange, autoComplete, autoFo
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required
-          className="h-12 w-full rounded-lg border-2 border-line bg-sheet pl-3 pr-24 text-base outline-none focus:border-carbon"
+          className="h-12 w-full rounded-lg border-2 border-line bg-sheet pl-3 pr-24 text-base outline-none focus:border-accion"
         />
-        <button type="button" onClick={() => setShow((v) => !v)} aria-pressed={show} className="absolute right-1 top-1 h-10 rounded-md px-3 text-sm font-semibold text-carbon">
+        <button type="button" onClick={() => setShow((v) => !v)} aria-pressed={show} className="absolute right-1 top-1 h-10 rounded-md px-3 text-sm font-semibold text-accion">
           {show ? 'Ocultar' : 'Mostrar'}
         </button>
       </div>

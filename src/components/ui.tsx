@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
 
-const base = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold disabled:opacity-50 disabled:pointer-events-none'
+const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 font-semibold disabled:opacity-50 disabled:pointer-events-none'
 
 export function Button({
   variant = 'primary',
@@ -8,7 +8,7 @@ export function Button({
   ...p
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'ghost' | 'danger' }) {
   const styles = {
-    primary: 'bg-carbon text-white hover:bg-carbon-dark h-12',
+    primary: 'bg-accion text-white hover:bg-accion-dark h-12',
     ghost: 'border-2 border-line bg-sheet hover:border-ink h-10 text-sm',
     danger: 'border-2 border-stamp/40 text-stamp hover:bg-stamp hover:text-white h-10 text-sm',
   }[variant]
@@ -25,7 +25,7 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 export const inputClass =
-  'h-12 w-full rounded-lg border-2 border-line bg-sheet px-3 text-base outline-none focus:border-carbon'
+  'h-12 w-full rounded-xl border-2 border-line bg-sheet px-3 text-base outline-none focus:border-accion'
 
 export function Input(p: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={inputClass} {...p} />
@@ -33,7 +33,7 @@ export function Input(p: InputHTMLAttributes<HTMLInputElement>) {
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-xl border-2 border-dashed border-line px-6 py-12 text-center">
+    <div className="rounded-2xl border-2 border-dashed border-line px-6 py-12 text-center">
       <p className="text-lg font-bold">{title}</p>
       {children && <div className="mt-2 text-ink-soft">{children}</div>}
     </div>

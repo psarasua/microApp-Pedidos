@@ -25,7 +25,7 @@ export function Cart() {
   if (lines.length === 0)
     return (
       <Empty title="El pedido está vacío">
-        Elige productos en el <Link to="/" className="font-semibold text-carbon underline">catálogo</Link>.
+        Elige productos en el <Link to="/" className="font-semibold text-accion underline">catálogo</Link>.
       </Empty>
     )
 

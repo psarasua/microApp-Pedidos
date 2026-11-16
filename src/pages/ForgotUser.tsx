@@ -28,7 +28,7 @@ export function ForgotUser() {
   if (sent)
     return (
       <AuthLayout title="Revisa tu correo" subtitle="Si ese correo tiene una cuenta, le enviamos el usuario. Si no llega, revisa la carpeta de spam.">
-        <Link to="/" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-carbon px-4 font-semibold text-white">Volver a entrar</Link>
+        <Link to="/" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-accion px-4 font-semibold text-white">Volver a entrar</Link>
       </AuthLayout>
     )
 
@@ -42,7 +42,7 @@ export function ForgotUser() {
         <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Enviando…' : 'Enviarme mi usuario'}</Button>
       </form>
       <p className="mt-4 text-center">
-        <Link to="/" className="font-semibold text-carbon underline">Volver a entrar</Link>
+        <Link to="/" className="font-semibold text-accion underline">Volver a entrar</Link>
       </p>
     </AuthLayout>
   )

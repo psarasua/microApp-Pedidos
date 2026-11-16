@@ -14,7 +14,7 @@ export function CodeField({ value, onChange, autoFocus }: { value: string; onCha
         autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
         required
-        className="h-14 w-full rounded-lg border-2 border-line bg-sheet px-3 text-center font-mono text-2xl font-bold tracking-[0.4em] outline-none focus:border-carbon"
+        className="h-14 w-full rounded-lg border-2 border-line bg-sheet px-3 text-center font-mono text-2xl font-bold tracking-[0.4em] outline-none focus:border-accion"
       />
     </Field>
   )
