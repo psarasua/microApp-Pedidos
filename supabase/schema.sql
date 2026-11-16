@@ -222,6 +222,17 @@ $$;
 revoke execute on function public.codigo_intento(uuid) from public, anon, authenticated;
 grant execute on function public.codigo_intento(uuid) to service_role;
 
+-- ===== Permisos de tabla (defensa en profundidad, además de RLS) =====
+-- El rol anon no necesita tocar ninguna tabla: la app solo lee y escribe con sesión iniciada (authenticated) y la
+-- función clientes usa la clave de servicio. Los usuarios con sesión tampoco necesitan TRUNCATE (ignora RLS),
+-- disparadores ni referencias.
+revoke all on categorias, productos, perfiles, pedidos, pedido_items from anon;
+revoke truncate, trigger, references on categorias, productos, perfiles, pedidos, pedido_items from authenticated;
+alter default privileges in schema public revoke all on tables from anon;
+alter default privileges in schema public revoke all on functions from anon;
+-- La función de disparo solo la ejecuta el motor.
+revoke execute on function private.fijar_item() from public, anon, authenticated;
+
 -- ===== Primer administrador =====
 -- 1) Crea tu cuenta desde la app (pantalla «Crear cuenta») y verifica tu correo con el código que te llega.
 -- 2) La app te muestra tu usuario (ID de 6 dígitos). Ejecuta esto con ese ID para convertirte en admin:
