@@ -52,12 +52,17 @@ export function Catalog() {
   const chip = (active: boolean) =>
     `shrink-0 rounded-full border-2 px-4 py-2 text-sm font-semibold ${active ? 'border-ink bg-ink text-white' : 'border-line bg-sheet hover:border-ink'}`
 
+  const cuenta = (id: string) => products.filter((p) => p.category_id === id).length
+  const lado = (active: boolean) =>
+    `flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-left font-semibold ${active ? 'bg-ink text-white' : 'hover:bg-line/60'}`
+
   return (
-    <div>
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start lg:gap-8">
+      <div>
       <InstallTip />
-      <div className="sticky top-0 z-30 -mx-4 space-y-3 bg-paper/95 px-4 pb-3 pt-1 backdrop-blur md:-mx-8 md:px-8">
+      <div className="sticky top-0 z-30 -mx-4 space-y-3 bg-paper/95 px-4 pb-3 pt-1 backdrop-blur md:-mx-8 md:px-8 lg:mx-0 lg:px-0">
         <Input type="search" placeholder="Buscar por nombre o código" aria-label="Buscar por nombre o código" value={q} onChange={(e) => setQ(e.target.value)} />
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0 lg:hidden">
           <button className={chip(cat === 'all')} onClick={() => setCat('all')}>Todos</button>
           {categories.map((c) => (
             <button key={c.id} className={chip(cat === c.id)} onClick={() => setCat(c.id)}>{c.name}</button>
@@ -115,7 +120,7 @@ export function Catalog() {
           })}
         </ul>
       ) : (
-        <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3">
           {visible.map((p) => {
             const n = cart.qty(p.id)
             return (
@@ -143,6 +148,20 @@ export function Catalog() {
           })}
         </ul>
       )}
+      </div>
+
+      <nav aria-label="Categorías" className="sticky top-5 hidden max-h-[calc(100dvh-2.5rem)] overflow-y-auto rounded-xl border-2 border-line bg-sheet p-2 lg:block">
+        <button className={lado(cat === 'all')} aria-current={cat === 'all' || undefined} onClick={() => setCat('all')}>
+          <span>Todos</span>
+          <span className={`text-sm tabular-nums ${cat === 'all' ? 'text-white/80' : 'text-ink-soft'}`}>{products.length}</span>
+        </button>
+        {categories.map((c) => (
+          <button key={c.id} className={lado(cat === c.id)} aria-current={cat === c.id || undefined} onClick={() => setCat(c.id)}>
+            <span className="truncate">{c.name}</span>
+            <span className={`text-sm tabular-nums ${cat === c.id ? 'text-white/80' : 'text-ink-soft'}`}>{cuenta(c.id)}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   )
 }

@@ -32,7 +32,7 @@ export function Layout() {
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
       <aside className="hidden border-r border-line bg-ink p-5 text-white md:block">
-        <div className="sticky top-5">
+        <div className="sticky top-5 flex h-[calc(100dvh-2.5rem)] flex-col">
           <p className="mb-8 text-2xl font-extrabold tracking-tight">Pedidos</p>
           <nav className="flex flex-col gap-1">
             {items.map((i) => (
@@ -51,20 +51,25 @@ export function Layout() {
             ))}
           </nav>
           {perfil && db.mode === 'supabase' && (
-            <div className="mt-8 px-3">
-              <p className="truncate text-sm text-white/70">{perfil.nombre}</p>
-              <button onClick={logout} className="mt-1 text-sm font-semibold text-white underline">Salir</button>
+            <div className="mt-auto flex items-center gap-3 rounded-lg bg-white/10 p-3">
+              <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-sm font-extrabold text-ink">
+                {perfil.nombre.trim().charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{perfil.nombre}</p>
+                <button onClick={logout} className="text-sm text-white/80 underline hover:text-white">Salir</button>
+              </div>
             </div>
           )}
           {db.mode === 'local' && (
-            <p className="mt-8 rounded-lg bg-white/10 p-3 text-sm text-white/80">
+            <p className="mt-auto rounded-lg bg-white/10 p-3 text-sm text-white/80">
               Modo local: los datos están solo en este dispositivo.
             </p>
           )}
         </div>
       </aside>
 
-      <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10">
         {db.mode === 'supabase' && (
           <header className="mb-3 flex items-center justify-between md:hidden">
             <span className="text-xl font-extrabold tracking-tight">Pedidos</span>
