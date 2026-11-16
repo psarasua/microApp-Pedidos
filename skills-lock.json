@@ -64,6 +64,20 @@
       "skillPath": "skills/choreograph/SKILL.md",
       "computedHash": "a33a7cf57eacff502f833778eed62244fb5a890bb25124dacde73bcf8716218c"
     },
+    "codeql": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/static-analysis/skills/codeql/SKILL.md",
+      "computedHash": "3aa08ccca1566c1bfe34bf6b2259098ae40fa5d64dce7bb4f7267828ed080a36"
+    },
+    "differential-review": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/differential-review/skills/differential-review/SKILL.md",
+      "computedHash": "41b93cf300a463adf697abb9467fc281fd0b6cdadee1092db8f11619e9be4362"
+    },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
       "commit": "64eb3deb9a5fbfa041faf783e0bc3fd635872e9c",
@@ -77,6 +91,13 @@
       "sourceType": "github",
       "skillPath": "skills/find-animation-opportunities/SKILL.md",
       "computedHash": "9ec1c8c622b2c3caf9bda1712440e25dd4f9bc6da1207db4fa80b784aa319186"
+    },
+    "fp-check": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/fp-check/skills/fp-check/SKILL.md",
+      "computedHash": "364313e5f7c4ae2c1116f5934bb9722ccfa45afc008a7824c24d8820f09f37c0"
     },
     "frontend-design": {
       "source": "anthropics/skills",
@@ -120,6 +141,13 @@
       "skillPath": "skills/pick-ui-library/SKILL.md",
       "computedHash": "3bc44e7faccb949583f4af6c8a15b5a50acc04a5e656f5168a96e5aa43e9f3cd"
     },
+    "playwright-skill": {
+      "source": "lackeyjb/playwright-skill",
+      "commit": "dd47a6a023e249eb1b36e9e943eab89d0900865d",
+      "sourceType": "github",
+      "skillPath": "skills/playwright-skill/SKILL.md",
+      "computedHash": "11a5e9fbfdb24afdd7f7a682711f68a9caa6be91b70d8531e578fdce438e0fad"
+    },
     "prototype": {
       "source": "emilkowalski/skills",
       "commit": "64eb3deb9a5fbfa041faf783e0bc3fd635872e9c",
@@ -141,12 +169,40 @@
       "skillPath": "skills/review-animations/SKILL.md",
       "computedHash": "50f1de2394b88bb3433eca1e30da6866a4e310963d872a66af20ca77fd77f07d"
     },
+    "semgrep": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/static-analysis/skills/semgrep/SKILL.md",
+      "computedHash": "6ce4dd995d671502bec8f33fa13d66ddf3d0e23e2d91a7d9c0531ae9ac547985"
+    },
+    "sharp-edges": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/sharp-edges/skills/sharp-edges/SKILL.md",
+      "computedHash": "fa36c2d4f9fa315eebcf03b4687dc760ff6b5805de69a3d2614a6b0fce695c6d"
+    },
+    "supply-chain-risk-auditor": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor/SKILL.md",
+      "computedHash": "8a15fe1e5cb75e02781bcf4d823a3ea32095c2e16c964c49182312f666aff866"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "commit": "e59ff376a41f7ca47b7541ad5c116495cbade3ee",
       "sourceType": "github",
       "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
       "computedHash": "9700c4f6c9460810a4158f3a6d3238d8ee58bc682e0aa7190c2c333cf6c666b1"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "48cd9a742a59250edec6db89cf081ef5465f365e2133f6d6c5e29c380b754b7d"
     },
     "write-swift": {
       "source": "emilkowalski/skills",
