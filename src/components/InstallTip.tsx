@@ -31,12 +31,18 @@ export function InstallTip() {
   }
 
   return (
-    <div className="mb-3 rounded-xl border-2 border-line bg-sheet p-3 text-sm md:hidden">
-      <p className="font-bold">Instala la app para entrar más rápido</p>
-      <p className="mt-1 text-ink-soft">
-        <span className="font-semibold">Android (Chrome):</span> menú ⋮ y «Instalar app». <span className="font-semibold">iPhone (Safari):</span> Compartir y «Añadir a pantalla de inicio».
-      </p>
-      <button onClick={close} className="mt-2 h-10 rounded-lg px-3 font-semibold text-carbon underline">Entendido</button>
-    </div>
+    <details className="group mb-3 rounded-xl border-2 border-line bg-sheet text-sm md:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 font-semibold">
+        <span>Instala la app en tu celular</span>
+        <span className="text-carbon group-open:hidden">Cómo</span>
+      </summary>
+      <div className="border-t-2 border-dashed border-line px-3 py-2 text-ink-soft">
+        <p><span className="font-semibold text-ink">Android (Chrome):</span> menú ⋮ y «Instalar app».</p>
+        <p className="mt-1"><span className="font-semibold text-ink">iPhone (Safari):</span> Compartir y «Añadir a pantalla de inicio».</p>
+      </div>
+      <div className="px-3 pb-2">
+        <button onClick={close} className="h-10 rounded-lg font-semibold text-carbon underline">No mostrar más</button>
+      </div>
+    </details>
   )
 }

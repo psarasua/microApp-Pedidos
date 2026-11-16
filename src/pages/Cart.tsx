@@ -62,7 +62,7 @@ export function Cart() {
             <li key={p.id} className="flex items-center gap-3 py-3">
               <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{p.name}</p>
+                <p className="line-clamp-2 font-semibold leading-tight">{p.name}</p>
                 <p className="truncate text-sm text-ink-soft">{p.codigo && `Cód. ${p.codigo} · `}{p.price > 0 ? `${formatMoney(p.price)} c/u` : 'Sin precio'}</p>
                 {p.price > 0 && <p className="font-bold">{formatMoney(p.price * quantity)}</p>}
               </div>

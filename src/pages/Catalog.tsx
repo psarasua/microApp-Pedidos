@@ -13,6 +13,22 @@ export function Catalog() {
   const cart = useCart()
   const [cat, setCat] = useState<string | 'all'>('all')
   const [q, setQ] = useState('')
+  // La lista es más rápida para pedir con un catálogo largo; las fotos ayudan a reconocer productos.
+  const [vista, setVista] = useState<'lista' | 'cuadricula'>(() => {
+    try {
+      return localStorage.getItem('pedidos.vista') === 'cuadricula' ? 'cuadricula' : 'lista'
+    } catch {
+      return 'lista'
+    }
+  })
+  function cambiarVista(v: 'lista' | 'cuadricula') {
+    setVista(v)
+    try {
+      localStorage.setItem('pedidos.vista', v)
+    } catch {
+      /* se usa la vista solo en esta sesión */
+    }
+  }
 
   const visible = useMemo(() => {
     // Cada palabra escrita debe aparecer en el nombre, el código o la descripción.
@@ -49,8 +65,55 @@ export function Catalog() {
         </div>
       </div>
 
+      <div className="mb-3 mt-1 flex items-center justify-between gap-3">
+        <p className="text-sm text-ink-soft" aria-live="polite">{visible.length} {visible.length === 1 ? 'producto' : 'productos'}</p>
+        <div className="flex gap-1" role="group" aria-label="Vista del catálogo">
+          {(['lista', 'cuadricula'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={vista === v}
+              onClick={() => cambiarVista(v)}
+              className={`h-10 rounded-lg px-3 text-sm font-semibold ${vista === v ? 'bg-ink text-white' : 'border-2 border-line bg-sheet hover:border-ink'}`}
+            >
+              {v === 'lista' ? 'Lista' : 'Fotos'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {visible.length === 0 ? (
         <Empty title="No hay productos con ese filtro" />
+      ) : vista === 'lista' ? (
+        <ul className="divide-y divide-line overflow-hidden rounded-xl border-2 border-line bg-sheet">
+          {visible.map((p) => {
+            const n = cart.qty(p.id)
+            return (
+              <li key={p.id} className={`flex items-center gap-3 p-3 ${n ? 'bg-mark/15' : ''}`}>
+                <ProductPhoto src={p.image_url} alt={p.name} className="h-16 w-16 shrink-0 rounded-lg" />
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 font-semibold leading-tight">{p.name}</p>
+                  <p className="mt-0.5 text-sm text-ink-soft">
+                    {p.codigo && <span className="font-semibold text-carbon">Cód. {p.codigo}</span>}
+                    {p.codigo && ' · '}
+                    <span className={`tabular-nums ${p.price > 0 ? 'font-bold text-ink' : ''}`}>{formatPrice(p.price)}</span>
+                  </p>
+                </div>
+                {n ? (
+                  <Stepper value={n} onChange={(v) => cart.setQty(p.id, v)} label={p.name} />
+                ) : (
+                  <button
+                    onClick={() => cart.setQty(p.id, 1)}
+                    className="grid h-10 w-24 shrink-0 place-items-center rounded-lg border-2 border-ink font-bold hover:bg-ink hover:text-white active:scale-[0.98]"
+                    aria-label={`Agregar ${p.name} al pedido`}
+                  >
+                    Agregar
+                  </button>
+                )}
+              </li>
+            )
+          })}
+        </ul>
       ) : (
         <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
           {visible.map((p) => {
