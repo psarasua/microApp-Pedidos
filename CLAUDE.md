@@ -35,6 +35,12 @@ Idea: talonario de pedidos. Paleta: tinta `#14213D`, papel `#F6F7F9`, azul carb�
 resaltador `#FFD93D` (solo para cantidades y totales). Tipografía: Schibsted Grotesk. Navegación inferior en móvil,
 barra lateral en PC. Mantener botones táctiles de al menos 40 px y foco visible.
 
+## Animaciones
+Leves y con propósito (todo en `src/index.css`, sección «Movimiento»): botones que se hunden al presionar (`scale(.97)`, 160 ms), diálogos y menú de
+cuenta que aparecen con fundido y un pequeño ascenso (150–220 ms, `@starting-style`), y un latido del contador del pedido. Curva `--ease-out`;
+solo `transform` y `opacity`; nada de `scale(0)` ni `transition: all`. **No se animan** las acciones muy frecuentes (sumar/restar cantidades, listas
+del catálogo, cambio de categoría). Con «reducir movimiento» queda solo el fundido.
+
 ## Convenciones
 - Textos de interfaz en español, frases en minúscula salvo la primera letra.
 - Los pedidos guardan nombre y precio del producto al momento de confirmar (no cambian si se edita el producto).

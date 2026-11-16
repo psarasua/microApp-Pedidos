@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
@@ -12,12 +12,25 @@ const icon = {
   admin: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-3-2 1-2-1-.3-2.3h-4L10 8 8 9 6 8 4 11l2 1v2l-2 1 2 3 2-1 2 1 .3 2.3h4L14 18l2-1 2 1 2-3-2-1z" />,
 }
 
+/** Contador con un latido breve cada vez que cambia (no al cargar la página). */
+function Insignia({ n, className, animar }: { n: number; className: string; animar: boolean }) {
+  return (
+    <span key={n} className={`${className} ${animar ? 'latido' : ''}`}>
+      {n}
+    </span>
+  )
+}
+
 export function Layout() {
   const cart = useCart()
   const { count } = cart
   const { error } = useData()
   const { isAdmin, perfil, signOut } = useAuth()
   const menu = useRef<HTMLDivElement>(null)
+  const montado = useRef(false) // el latido no se dispara al cargar la página
+  useEffect(() => {
+    montado.current = true
+  }, [])
 
   function logout() {
     cart.clear()
@@ -47,7 +60,7 @@ export function Layout() {
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{icon.pedido}</svg>
               Pedido
-              {!!count && <span className="rounded-full bg-mark px-2 text-sm font-bold text-ink">{count}</span>}
+              {!!count && <Insignia animar={montado.current} n={count} className="rounded-full bg-mark px-2 text-sm font-bold text-ink" />}
             </NavLink>
             <button
               type="button"
@@ -113,7 +126,7 @@ export function Layout() {
             <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round">{i.icon}</svg>
             {i.label}
             {!!i.badge && (
-              <span className="absolute right-[26%] top-1 min-w-5 rounded-full bg-mark px-1 text-center text-xs font-bold text-ink">{i.badge}</span>
+              <Insignia animar={montado.current} n={i.badge} className="absolute right-[26%] top-1 min-w-5 rounded-full bg-mark px-1 text-center text-xs font-bold text-ink" />
             )}
           </NavLink>
         ))}

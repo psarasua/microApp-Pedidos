@@ -43,6 +43,52 @@ dialog.modal::backdrop { background: color-mix(in srgb, var(--color-ink) 60%, tr
 
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
+/* ===== Movimiento: leve y con propósito (ver la sección «Animaciones» de CLAUDE.md) ===== */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --entra: translateY(0.75rem) scale(0.97); /* diálogos: entran desde abajo, nunca desde scale(0) */
+  --entra-menu: translateY(-4px) scale(0.96);
+}
+
+/* Respuesta al toque: todos los botones se hunden un poco al presionarlos */
+button { transition: transform 160ms var(--ease-out), background-color 150ms, color 150ms, border-color 150ms, opacity 150ms; }
+button:not(:disabled):active { transform: scale(0.97); }
+
+/* Diálogos: aparecen con fundido y un pequeño ascenso; el fondo se oscurece con fundido */
+dialog.modal {
+  opacity: 1;
+  transform: none;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+}
+@starting-style {
+  dialog.modal[open] { opacity: 0; transform: var(--entra); }
+}
+dialog.modal::backdrop { transition: opacity 220ms var(--ease-out); }
+@starting-style {
+  dialog.modal[open]::backdrop { opacity: 0; }
+}
+
+/* Menú de cuenta: crece desde el botón (arriba a la derecha) y se cierra igual */
+#menu-cuenta {
+  transform-origin: top right;
+  opacity: 0;
+  transform: var(--entra-menu);
+  transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out), overlay 150ms allow-discrete, display 150ms allow-discrete;
+}
+#menu-cuenta:popover-open { opacity: 1; transform: none; }
+@starting-style {
+  #menu-cuenta:popover-open { opacity: 0; transform: var(--entra-menu); }
+}
+
+/* Contador del pedido: un pequeño latido cuando cambia la cantidad */
+@keyframes latido {
+  40% { transform: scale(1.25); }
+}
+.latido { animation: latido 240ms var(--ease-out); }
+
+/* Con «reducir movimiento» queda solo el fundido: sin desplazamientos, escalas ni latidos */
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  :root { --entra: none; --entra-menu: none; }
+  button:not(:disabled):active { transform: none; }
+  .latido { animation: none; }
 }

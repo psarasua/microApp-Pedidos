@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
 
-const base = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none'
+const base = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold disabled:opacity-50 disabled:pointer-events-none'
 
 export function Button({
   variant = 'primary',

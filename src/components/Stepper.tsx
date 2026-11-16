@@ -2,12 +2,12 @@ type Props = { value: number; onChange: (n: number) => void; label: string; size
 
 /** Campo de cantidad: se escribe el número o se suma y resta con los botones. Con 0 el artículo no entra al pedido. */
 export function Stepper({ value, onChange, label, size = 'md' }: Props) {
-  const btn = `grid place-items-center font-bold leading-none select-none active:scale-95 transition-transform disabled:opacity-30 disabled:active:scale-100 ${
+  const btn = `grid place-items-center font-bold leading-none select-none disabled:opacity-30 ${
     size === 'lg' ? 'h-12 w-12 text-2xl' : 'h-10 w-10 text-xl'
   }`
   return (
     <div
-      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border-2 ${value > 0 ? 'border-ink' : 'border-line'} bg-sheet`}
+      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border-2 transition-colors duration-150 ${value > 0 ? 'border-ink' : 'border-line'} bg-sheet`}
       role="group"
       aria-label={label}
     >
@@ -19,7 +19,7 @@ export function Stepper({ value, onChange, label, size = 'md' }: Props) {
         pattern="[0-9]*"
         autoComplete="off"
         aria-label={`Cantidad de ${label}`}
-        className={`w-12 text-center font-bold outline-none ${value > 0 ? 'bg-mark' : 'bg-paper text-ink-soft'} ${size === 'lg' ? 'text-lg' : 'text-base'}`}
+        className={`w-12 text-center font-bold outline-none transition-colors duration-150 ${value > 0 ? 'bg-mark' : 'bg-paper text-ink-soft'} ${size === 'lg' ? 'text-lg' : 'text-base'}`}
         value={value}
         onChange={(e) => onChange(Number(e.target.value.replace(/\D/g, '')) || 0)}
         onFocus={(e) => e.target.select()}
