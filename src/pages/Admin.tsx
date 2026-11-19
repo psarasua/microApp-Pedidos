@@ -5,7 +5,7 @@ import { ProductPhoto } from '../components/ProductPhoto'
 import { Button, Empty, Field, Input, inputClass, Spinner } from '../components/ui'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
-import { formatPrice, normalizar } from '../lib/format'
+import { formatPrice, normalizar, nombreMostrado } from '../lib/format'
 import { resizeImage } from '../lib/image'
 import { clearCatalog, clearOrders, loadSample } from '../lib/seed'
 import type { Category, Perfil, Product } from '../lib/types'
@@ -287,7 +287,7 @@ function Clients() {
     try {
       const list = await db.listClientes()
       const order = { pendiente: 0, aprobado: 1, bloqueado: 2 }
-      setClients(list.sort((a, b) => order[a.estado] - order[b.estado] || a.nombre.localeCompare(b.nombre, 'es')))
+      setClients(list.sort((a, b) => order[a.estado] - order[b.estado] || nombreMostrado(a).localeCompare(nombreMostrado(b), 'es')))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron cargar los clientes')
       setClients([])
@@ -320,7 +320,7 @@ function Clients() {
             <li key={c.id} className="rounded-2xl border border-line bg-sheet p-3">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{c.nombre}</p>
+                  <p className="truncate font-semibold">{nombreMostrado(c)}</p>
                   <p className="text-sm text-ink-soft">
                     Usuario <span className="rounded bg-mark px-1.5 font-bold tracking-wider text-ink">{c.usuario}</span>
                     {c.telefono && ` · Cel. ${c.telefono}`}
@@ -349,7 +349,7 @@ function Clients() {
                 {c.rol !== 'admin' && c.estado !== 'aprobado' && c.email_verificado && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
                 {c.rol !== 'admin' && c.estado !== 'aprobado' && !c.email_verificado && <p className="self-center text-sm text-ink-soft">Se puede aprobar cuando verifique su correo.</p>}
                 {c.rol !== 'admin' && c.estado === 'aprobado' && (
-                  <Button variant="danger" onClick={async () => (await confirmar(`¿Bloquear a ${c.nombre}?`, 'Bloquear')) && setEstado(c, 'bloqueado')}>Bloquear</Button>
+                  <Button variant="danger" onClick={async () => (await confirmar(`¿Bloquear a ${nombreMostrado(c)}?`, 'Bloquear')) && setEstado(c, 'bloqueado')}>Bloquear</Button>
                 )}
                 <Button variant="ghost" onClick={() => setDatos(c)}>{c.codigo_cliente ? 'Editar código y nombre' : 'Asignar código y nombre'}</Button>
                 {/* La contraseña de un administrador no se restablece desde acá: la función del servidor tampoco lo permite. */}
@@ -397,10 +397,10 @@ function DatosCliente({ client, onClose, onSaved }: { client: Perfil; onClose: (
   }
 
   return (
-    <Modal title={`Código de ${client.nombre}`} onClose={onClose}>
+    <Modal title={`Código de ${nombreMostrado(client)}`} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <p className="text-sm text-ink-soft">
-          Sin código y nombre de cliente, {client.nombre} no puede confirmar pedidos. El código viaja en el archivo de cada pedido.
+          Sin código y nombre de cliente, {nombreMostrado(client)} no puede confirmar pedidos. El código viaja en el archivo de cada pedido.
         </p>
         <Field label="Código de cliente (hasta 10 dígitos)">
           <Input value={codigo} onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))} maxLength={10} inputMode="numeric" required autoFocus />
@@ -443,7 +443,7 @@ function ResetPassword({ client, onClose }: { client: Perfil; onClose: () => voi
   }
 
   return (
-    <Modal title={`Contraseña de ${client.nombre}`} onClose={onClose}>
+    <Modal title={`Contraseña de ${nombreMostrado(client)}`} onClose={onClose}>
       {temporal ? (
         <div className="space-y-4">
           <p>Pásale al cliente esta contraseña temporal. <span className="font-semibold">Solo se muestra ahora.</span> Al entrar, tendrá que elegir una nueva.</p>
@@ -455,7 +455,7 @@ function ResetPassword({ client, onClose }: { client: Perfil; onClose: () => voi
       ) : (
         <div className="space-y-4">
           <p>Las contraseñas se guardan cifradas: nadie puede verlas, ni siquiera tú. Por eso se genera una <span className="font-semibold">temporal</span>, que verás una sola vez.</p>
-          <p className="text-sm text-ink-soft">La contraseña actual de {client.nombre} dejará de funcionar. Si el cliente conserva su código de recuperación, puede evitar este paso y recuperarla solo.</p>
+          <p className="text-sm text-ink-soft">La contraseña actual de {nombreMostrado(client)} dejará de funcionar. Si el cliente conserva su código de recuperación, puede evitar este paso y recuperarla solo.</p>
           {error && <p role="alert" className="text-stamp">{error}</p>}
           <Button className="w-full" onClick={generate} disabled={busy}>{busy ? 'Generando…' : 'Generar contraseña temporal'}</Button>
         </div>

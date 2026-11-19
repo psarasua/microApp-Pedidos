@@ -59,7 +59,7 @@ del catálogo, cambio de categoría). Con «reducir movimiento» queda solo el f
 - Textos de interfaz en español, frases en minúscula salvo la primera letra.
 - Los pedidos guardan nombre y precio del producto al momento de confirmar (no cambian si se edita el producto).
 - Login: usuario = ID numérico que asigna la función `clientes` al registrarse (6 dígitos al azar, único; la base acepta 5 a 15),
-  contraseña de 8 o más caracteres. Supabase Auth guarda el hash (bcrypt). El celular es un dato de contacto opcional (`perfiles.telefono`).
+  contraseña de 8 o más caracteres. Supabase Auth guarda el hash (bcrypt). **El registro pide solo correo y contraseña** (sin nombre, celular ni dirección: no se usan). `perfiles.nombre` queda provisorio («Cliente 496230») y el nombre real es `perfiles.nombre_cliente`, que asigna el admin; la app muestra `nombreMostrado(perfil)`. Las columnas `telefono` y `direccion` quedan vacías.
   Internamente el usuario se convierte en el email `<id>@clientes.invalid` (debe coincidir en `src/lib/supabase.ts` y en la función).
 - Correo obligatorio: el registro pide un correo real (`perfiles.email`, único) y lo verifica con un código de 6 dígitos enviado por Brevo.
   El usuario (ID) sigue siendo el login; el correo solo sirve para verificar, recuperar contraseña (`recuperar_pedir` y `recuperar_confirmar`,

@@ -7,7 +7,7 @@ import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
 import { descargarTxtPedido } from '../lib/txtPedido'
-import { formatDate, formatMoney } from '../lib/format'
+import { formatDate, formatMoney, nombreMostrado } from '../lib/format'
 import type { Order, OrderStatus } from '../lib/types'
 
 const STATUSES: OrderStatus[] = ['pendiente', 'enviado', 'entregado']
@@ -90,7 +90,7 @@ export function Orders() {
               <button className="flex w-full items-center gap-3 p-4 text-left" onClick={() => setOpen(isOpen ? null : o.id)} aria-expanded={isOpen}>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{formatDate(o.created_at)}</p>
-                  <p className="text-sm text-ink-soft">{isAdmin && o.cliente ? `${o.cliente.nombre} · ` : ''}{o.items.reduce((s, i) => s + i.quantity, 0)} artículos</p>
+                  <p className="text-sm text-ink-soft">{isAdmin && o.cliente ? `${nombreMostrado(o.cliente)} · ` : ''}{o.items.reduce((s, i) => s + i.quantity, 0)} artículos</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusStyle[o.status]}`}>{o.status}</span>
                 <span className="w-24 text-right text-lg font-extrabold">{orderTotal(o) > 0 ? formatMoney(orderTotal(o)) : '—'}</span>

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { formatMoney } from '../lib/format'
+import { formatMoney, nombreMostrado } from '../lib/format'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { Logo } from './Logo'
@@ -88,7 +88,7 @@ export function Layout() {
       >
         {perfil && db.mode === 'supabase' && (
           <div className="mb-1 border-b border-line px-3 pb-2 pt-1">
-            <p className="truncate font-bold">{perfil.nombre}</p>
+            <p className="truncate font-bold">{nombreMostrado(perfil)}</p>
             <p className="text-sm text-ink-soft">Usuario {perfil.usuario}</p>
           </div>
         )}

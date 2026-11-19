@@ -13,10 +13,7 @@ type Step = 'datos' | 'codigo' | 'listo'
 export function Register() {
   const { signIn } = useAuth()
   const [step, setStep] = useState<Step>('datos')
-  const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [direccion, setDireccion] = useState('')
   const [password, setPassword] = useState('')
   const [repeat, setRepeat] = useState('')
   const [codigo, setCodigo] = useState('')
@@ -33,7 +30,7 @@ export function Register() {
     if (password !== repeat) return setError('Las contraseñas no coinciden')
     setBusy(true)
     try {
-      await invokeClientes({ accion: 'registrar', nombre, email: correo, telefono, direccion, password })
+      await invokeClientes({ accion: 'registrar', email: correo, password })
       setCodigo('')
       setStep('codigo')
     } catch (err) {
@@ -105,14 +102,9 @@ export function Register() {
   return (
     <AuthLayout title="Crear cuenta" subtitle="Para hacer pedidos. Te enviamos un código por correo para verificarlo.">
       <form onSubmit={sendData} className="space-y-4 rounded-2xl border-2 border-line bg-sheet p-5">
-        <Field label="Nombre"><Input value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="name" required /></Field>
         <Field label="Correo electrónico">
-          <Input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} />
+          <Input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} autoFocus />
         </Field>
-        <Field label="Celular (opcional)">
-          <Input type="tel" inputMode="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} autoComplete="tel" maxLength={20} placeholder="099123456" />
-        </Field>
-        <Field label="Dirección (opcional)"><Input value={direccion} onChange={(e) => setDireccion(e.target.value)} autoComplete="street-address" /></Field>
         <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} autoComplete="new-password" />
         <Field label="Repite la contraseña">
           <Input type="password" autoComplete="new-password" value={repeat} onChange={(e) => setRepeat(e.target.value)} required />

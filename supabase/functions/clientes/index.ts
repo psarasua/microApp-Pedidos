@@ -290,11 +290,8 @@ async function manejar(req: Request): Promise<Response> {
   try {
     // ---- Registro: crea la cuenta sin verificar y envía el código al correo ----
     if (body.accion === 'registrar') {
-      const nombre = String(body.nombre ?? '').trim()
-      const direccion = String(body.direccion ?? '').trim().slice(0, 200)
-      const telefono = String(body.telefono ?? '').replace(/[^\d+ ]/g, '').trim().slice(0, 20)
+      // El registro pide solo correo y contraseña: el nombre del cliente lo asigna después el admin (perfiles.nombre_cliente).
       const email = limpiarCorreo(body.email)
-      if (nombre.length < 2 || nombre.length > 80) return fail('Escribe tu nombre')
       if (!esCorreo(email)) return fail('Escribe un correo válido')
       const errClave = validarClave(body.password)
       if (errClave) return fail(errClave)
@@ -338,9 +335,10 @@ async function manejar(req: Request): Promise<Response> {
       }
       if (!userId) return fail('No se pudo asignar un usuario. Intenta de nuevo.', 500)
 
+      const nombre = `Cliente ${usuario}` // provisorio hasta que el admin asigne el nombre del cliente
       const { error: errPerfil } = await admin
         .from('perfiles')
-        .insert({ id: userId, usuario, nombre, direccion, telefono, email, email_verificado: false })
+        .insert({ id: userId, usuario, nombre, email, email_verificado: false })
       if (errPerfil) {
         await admin.auth.admin.deleteUser(userId)
         return fail('No se pudo crear la cuenta', 500)
