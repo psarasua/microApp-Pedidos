@@ -46,10 +46,15 @@ export async function loadSample() {
   const categories = await db.listCategories()
 
   const existingProducts = new Set((await db.listProducts()).map((p) => p.name))
+  // Los productos de ejemplo llevan códigos 9001, 9002… (el código es la clave y no puede quedar vacío).
+  const usados = new Set((await db.listProducts()).map((p) => p.codigo))
+  let siguiente = 9001
   for (const p of PRODUCTOS) {
     if (existingProducts.has(p.nombre)) continue
+    while (usados.has(String(siguiente))) siguiente++
+    const codigo = String(siguiente++)
     await db.saveProduct({
-      codigo: '',
+      codigo,
       name: p.nombre,
       description: p.descripcion,
       price: p.precio,

@@ -116,6 +116,7 @@ function ProductForm({ product, categories, onClose, onSaved }: { product: Produ
   async function submit(e: FormEvent) {
     e.preventDefault()
     const value = Number(price.replace(',', '.'))
+    if (!codigo.trim()) return setError('Escribe el código del producto: es su clave y no puede repetirse')
     if (!name.trim()) return setError('Escribe el nombre del producto')
     if (!Number.isFinite(value) || value < 0) return setError('El precio no es válido')
     setBusy(true)
@@ -155,7 +156,7 @@ function ProductForm({ product, categories, onClose, onSaved }: { product: Produ
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Código"><Input value={codigo} onChange={(e) => setCodigo(e.target.value)} maxLength={20} inputMode="numeric" /></Field>
+          <Field label="Código"><Input value={codigo} onChange={(e) => setCodigo(e.target.value)} maxLength={20} inputMode="numeric" required /></Field>
           <div className="col-span-2"><Field label="Nombre"><Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field></div>
         </div>
         <Field label="Descripción (opcional)">

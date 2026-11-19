@@ -1,7 +1,7 @@
--- Catálogo de productos 2026 (Conaprole) que se vende: 190 productos en 9 categorías (sin Helados, Congelados ni Polar Food).
+-- Catálogo de productos 2026 (Conaprole) que se vende: 189 productos en 9 categorías (sin Helados, Congelados ni Polar Food).
 -- Los precios quedan en 0: el catálogo no los trae. Cárgalos desde Admin > Productos.
 -- Las fotos están en public/productos/<código>.webp y se sirven con la app (image_url = /productos/<código>.webp).
--- Se puede ejecutar más de una vez: no duplica categorías ni productos (mismo código y nombre).
+-- Se puede ejecutar más de una vez: el código es la clave del producto, así que no duplica categorías ni productos.
 
 insert into public.categorias (nombre)
 select v.n from (values ('Leches'), ('Manteca'), ('Yogures'), ('Postres'), ('Jugos'), ('Dulce de leche'), ('Crema de leche'), ('Pulpa de tomate'), ('Quesos')) as v(n)
@@ -92,7 +92,6 @@ from (values
   ('2324', 'Frutilla 0%', 'Cont. Neto 750 grs · 0% grasa, 0% colesterol, sin azúcares agregados', 'Yogures'),
   ('8796', 'Pudding Vainilla con Discos de Chocolate', 'Cont. Neto 130 grs', 'Postres'),
   ('1706', 'Gelatina Frutilla', 'Cont. Neto 2 x 104 grs', 'Postres'),
-  ('2635', 'Pudding Vainilla', 'Cont. Neto 2 x 110 grs', 'Postres'),
   ('1705', 'Gelatina Manzana', 'Cont. Neto 2 x 104 grs', 'Postres'),
   ('2635', 'Pudding Chocolate', 'Cont. Neto 2 x 110 grs', 'Postres'),
   ('1711', 'Gelatina Cereza', 'Cont. Neto 2 x 104 grs', 'Postres'),
@@ -202,7 +201,4 @@ from (values
   ('815', 'Queso Reggianito', 'Cont. Neto 7,5 kg', 'Quesos')
 ) as v(codigo, nombre, descripcion, categoria)
 join public.categorias c on c.nombre = v.categoria
-where not exists (select 1 from public.productos p where p.codigo = v.codigo and p.nombre = v.nombre);
-
--- Códigos que el catálogo repite en productos distintos: cada uno tiene su propia foto.
-update public.productos set image_url = '/productos/2635-2.webp' where codigo = '2635' and nombre = 'Pudding Chocolate';
+where not exists (select 1 from public.productos p where p.codigo = v.codigo);

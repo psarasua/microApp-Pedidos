@@ -10,7 +10,7 @@ create table if not exists categorias (
 
 create table if not exists productos (
   id uuid primary key default gen_random_uuid(),
-  codigo text not null default '' check (char_length(codigo) <= 20), -- código del catálogo del proveedor; no es único (el catálogo repite algunos)
+  codigo text not null constraint productos_codigo_obligatorio check (char_length(btrim(codigo)) between 1 and 20), -- el código es la clave del producto: obligatorio y único
   nombre text not null constraint productos_nombre_largo check (char_length(btrim(nombre)) between 1 and 200),
   descripcion text not null default '' constraint productos_descripcion_largo check (char_length(descripcion) <= 500),
   precio numeric(12,2) not null default 0 check (precio >= 0),
@@ -60,7 +60,7 @@ create table if not exists pedido_items (
 );
 
 create index if not exists productos_categoria_idx on productos(categoria_id);
-create index if not exists productos_codigo_idx on productos(codigo);
+create unique index if not exists productos_codigo_key on productos(codigo);
 create index if not exists pedidos_cliente_idx on pedidos(cliente_id);
 create index if not exists pedido_items_pedido_idx on pedido_items(pedido_id);
 create index if not exists pedido_items_producto_idx on pedido_items(producto_id);

@@ -30,9 +30,10 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
   API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).
 - Los pedidos se crean con la función SQL `crear_pedido` (una sola transacción); el navegador solo envía producto y cantidad.
 - `supabase/schema.sql` esquema completo; los nombres de columnas están en español y se mapean a inglés en `db.supabase.ts`
-- Catálogo de Conaprole 2026 (190 productos, 9 categorías: sin Helados, Congelados ni Polar Food, que no se venden): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
-  `public/productos/<código>.webp` (`image_url = /productos/<código>.webp`; el único código repetido que queda, 2635 (Pudding Vainilla y Pudding Chocolate), usa `-2.webp`
-  para el segundo producto). El catálogo no trae precios: quedan en 0 y la app los muestra como «Sin precio». `productos.codigo` no es único.
+- Catálogo de Conaprole 2026 (189 productos, 9 categorías: sin Helados, Congelados ni Polar Food, que no se venden): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
+  `public/productos/<código>.webp` (`image_url = /productos/<código>.webp`).
+  El catálogo no trae precios: quedan en 0 y la app los muestra como «Sin precio». **`productos.codigo` es la clave del producto: obligatorio y único**
+  (índice `productos_codigo_key`). El catálogo original repetía 81339 y 2635; se resolvió quitando los duplicados (de 2635 queda Pudding Chocolate).
   Las fotos nuevas que se suben desde Admin van a Supabase Storage.
 
 ## Diseño

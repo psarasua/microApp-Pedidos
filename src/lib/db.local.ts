@@ -59,6 +59,7 @@ export const localDb: Db = {
   },
   async saveProduct(p) {
     mutate((s) => {
+      if (s.products.some((x) => x.codigo === p.codigo && x.id !== p.id)) throw new Error('Ya existe un producto con ese código')
       const i = p.id ? s.products.findIndex((x) => x.id === p.id) : -1
       if (i >= 0) s.products[i] = { ...p, id: p.id! }
       else s.products.push({ ...p, id: uid() })

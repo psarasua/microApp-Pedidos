@@ -44,8 +44,10 @@ export function createSupabaseDb(): Db {
         image_url: p.image_url,
         categoria_id: p.category_id,
       }
-      if (p.id) check(await sb.from('productos').update(row).eq('id', p.id))
-      else check(await sb.from('productos').insert(row))
+      const res = p.id ? await sb.from('productos').update(row).eq('id', p.id) : await sb.from('productos').insert(row)
+      // El código es la clave del producto: no puede repetirse.
+      if (res.error?.message.includes('productos_codigo_key')) throw new Error('Ya existe un producto con ese código')
+      check(res)
     },
     async deleteProduct(id) {
       check(await sb.from('productos').delete().eq('id', id))
