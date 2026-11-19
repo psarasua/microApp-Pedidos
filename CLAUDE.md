@@ -18,14 +18,18 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `src/lib/data.tsx` carga categorías/productos/pedidos; llamar `refresh()` tras cada escritura
 - `src/lib/cart.tsx` carrito en `localStorage`
 - `src/lib/auth.tsx` sesión y perfil; `src/lib/supabase.ts` cliente compartido
-- `supabase/functions/clientes/index.ts` registro de clientes y cambio de clave por el admin (se despliega con verify_jwt desactivado)
+- `supabase/functions/clientes/` registro de clientes, recuperación y cambio de clave (verify_jwt desactivado). `index.ts` solo enruta; cada acción vive en `acciones/<accion>.ts`
+  (`registrar`, `verificar-correo`, `reenviar-codigo`, `recuperar-pedir`, `recuperar-confirmar`, `olvide-usuario`, `cambiar-clave`, `restablecer-clave`) y lo común en `http`, `correo`, `envios`, `perfiles`, `limites`, `utiles` y `supabase`.
+  Se despliega con `npx supabase functions deploy clientes --remote=<ref> --no-verify-jwt --use-api` (la CLI pide confirmación para producción).
 - Archivo del pedido: al confirmar un pedido se abre «Mis pedidos» con ese pedido y el botón «Descargar .txt»; cada pedido del historial tiene el mismo botón (también el admin en «Recibidos»).
   Se genera en el navegador con `src/lib/txtPedido.ts`: **una línea por artículo, sin encabezado y con CRLF: `codigo_cliente,codigo_articulo,cantidad`** (el código de cliente sale de
   `pedidos.codigo_cliente`, que fija un trigger al crear el pedido; el artículo es `productos.codigo`). Si falta el código de cliente o algún código de artículo, no se genera y se explica por qué.
 - `supabase/functions/pedido-correo/` (`index.ts`, verify_jwt desactivado; hay que volver a desplegarla con el cambio a .txt) ya está desplegada pero **la app todavía no la usa** (el envío por correo es lo último
   que se hace). Cuando se active: llamar `enviarPedidoPorCorreo(id)` (`src/lib/supabase.ts`) tras `createOrder`; envía por Brevo el .txt adjunto a `PEDIDOS_DESTINO` y, en copia,
   a `PEDIDOS_COPIA` (secretos, listas separadas por comas), una sola vez por pedido (`pedidos.correo_enviado_at`, reserva atómica; el admin puede reenviar con `reenviar`).
-- `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Register, Recover, ForgotUser, ForcePasswordChange
+- `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Login, Register, Recover, ForgotUser, ForcePasswordChange y `Admin.tsx` (solo reparte entre pestañas).
+  Cada pestaña o ventana del admin vive en su archivo de `src/pages/admin/`: `ProductosTab`, `ProductoForm`, `CategoriasTab`, `ClientesTab`, `DatosClienteModal`, `RestablecerClaveModal`, `HerramientasDatosTab`.
+- **Regla de organización:** un archivo, una responsabilidad y un nombre que la diga; si pasa de ~200 líneas hay que preguntarse si hace más de una cosa. Las pantallas dependen de la interfaz `Db` (`types.ts`), no de Supabase.
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
 - `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). Si se agrega un servicio externo (fuentes, imágenes,
   API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).

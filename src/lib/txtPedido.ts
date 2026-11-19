@@ -11,7 +11,7 @@ const sinSeparadores = (v: string) => !/[,\r\n]/.test(v)
  * Texto del pedido: una línea por artículo con `codigo_cliente,codigo_articulo,cantidad`, sin encabezado
  * y con fin de línea CRLF (el formato que leen los programas de Windows). Lanza un mensaje claro si falta algún dato.
  */
-export function textoPedido(o: Order, { sinCuentas = false }: Opciones = {}): string {
+function textoPedido(o: Order, { sinCuentas = false }: Opciones = {}): string {
   const codigoCliente = (o.codigo_cliente ?? '').trim() || (sinCuentas ? '0' : '')
   if (!codigoCliente) throw new Error('Este pedido no tiene código de cliente, no se puede generar el archivo.')
   if (!sinSeparadores(codigoCliente)) throw new Error('El código de cliente tiene caracteres no válidos.')
@@ -26,7 +26,7 @@ export function textoPedido(o: Order, { sinCuentas = false }: Opciones = {}): st
 }
 
 /** Nombre de archivo seguro, p. ej. pedido-1043-20261116-1555.txt */
-export function nombreArchivoPedido(o: Order): string {
+function nombreArchivoPedido(o: Order): string {
   const cliente = (o.codigo_cliente ?? '').replace(/[^\w-]+/g, '') || 'cliente'
   const f = new Date(o.created_at)
   const dos = (n: number) => String(n).padStart(2, '0')

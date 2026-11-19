@@ -51,7 +51,7 @@ export type Order = {
   cliente?: { nombre: string; usuario: string; telefono?: string; direccion?: string; email?: string | null; nombre_cliente?: string | null } | null
 }
 
-export type ProductInput = Omit<Product, 'id'> & { id?: string }
+type ProductInput = Omit<Product, 'id'> & { id?: string }
 
 export interface Db {
   mode: 'local' | 'supabase'

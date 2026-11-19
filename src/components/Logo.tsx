@@ -4,11 +4,11 @@ import { useId } from 'react'
  * Identidad de la app: una gota de leche con un tilde (pedido listo).
  * La gota es la marca; en el nombre reemplaza el punto de la «i»; al cargar se llena de leche y marca el tilde.
  */
-export const GOTA = 'M16 5c3.9 4.9 7.5 8.6 7.5 12.9a7.5 7.5 0 0 1-15 0C8.5 13.6 12.1 9.9 16 5z'
-export const TILDE = 'm12.3 18.4 2.7 2.7 5.2-5.6'
+const GOTA = 'M16 5c3.9 4.9 7.5 8.6 7.5 12.9a7.5 7.5 0 0 1-15 0C8.5 13.6 12.1 9.9 16 5z'
+const TILDE = 'm12.3 18.4 2.7 2.7 5.2-5.6'
 
 /** Marca cuadrada (ícono de la app). */
-export function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
+function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
       <rect width="32" height="32" rx="9" fill="var(--color-accion)" />
