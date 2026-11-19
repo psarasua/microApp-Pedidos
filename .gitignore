@@ -32,3 +32,8 @@ dist-ssr
 
 # Archivos temporales de la CLI de Supabase
 supabase/.temp/
+
+# Skills de IA instaladas con npx skills: son instrucciones de terceros con permisos de agente, no van al repositorio
+.agents/
+.claude/skills/
+skills-lock.json
