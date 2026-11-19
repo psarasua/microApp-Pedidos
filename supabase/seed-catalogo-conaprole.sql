@@ -1,4 +1,4 @@
--- Catálogo de productos 2026 (Conaprole) que se vende: 192 productos en 9 categorías (sin Helados, Congelados ni Polar Food).
+-- Catálogo de productos 2026 (Conaprole) que se vende: 190 productos en 9 categorías (sin Helados, Congelados ni Polar Food).
 -- Los precios quedan en 0: el catálogo no los trae. Cárgalos desde Admin > Productos.
 -- Las fotos están en public/productos/<código>.webp y se sirven con la app (image_url = /productos/<código>.webp).
 -- Se puede ejecutar más de una vez: no duplica categorías ni productos (mismo código y nombre).
@@ -16,7 +16,6 @@ from (values
   ('133', 'Leche Ultrapasteurizada Desc.', 'Cont. Neto 1 Litro', 'Leches'),
   ('113', 'Leche Semidescremada Extra Calcio', 'Cont. Neto 1 Litro', 'Leches'),
   ('122', 'Leche Descremada Extra Calcio', 'Cont. Neto 1 Litro', 'Leches'),
-  ('81339', 'Leche UP Larga Vida Descremada', 'Cont. Neto 1 Litro', 'Leches'),
   ('81340', 'Leche UP Larga Vida Entera', 'Cont. Neto 1 Litro', 'Leches'),
   ('82137', 'Leche UHT Larga Vida Descremada', 'Cont. Neto 1 Litro', 'Leches'),
   ('82138', 'Leche UHT Larga Vida Entera', 'Cont. Neto 1 Litro', 'Leches'),
@@ -24,7 +23,6 @@ from (values
   ('8188', 'Leche Proteínas', 'Cont. Neto 1 Litro', 'Leches'),
   ('8129', 'Leche Primeros Pasos', 'Cont. Neto 1 Litro', 'Leches'),
   ('8183', 'Leche Descremada 0% Lactosa', 'Cont. Neto 1 Litro', 'Leches'),
-  ('81339', 'Leche en polvo Descremada', 'Cont. Neto 200 grs', 'Leches'),
   ('413', 'Leche en polvo Entera', 'Cont. Neto 400 grs', 'Leches'),
   ('2410', 'Leche Clásico', 'Cont. Neto 1 Litro', 'Leches'),
   ('2416', 'Colet Dulce de Leche', 'Cont. Neto 1 Litro', 'Leches'),
@@ -207,5 +205,4 @@ join public.categorias c on c.nombre = v.categoria
 where not exists (select 1 from public.productos p where p.codigo = v.codigo and p.nombre = v.nombre);
 
 -- Códigos que el catálogo repite en productos distintos: cada uno tiene su propia foto.
-update public.productos set image_url = '/productos/81339-2.webp' where codigo = '81339' and nombre = 'Leche en polvo Descremada';
 update public.productos set image_url = '/productos/2635-2.webp' where codigo = '2635' and nombre = 'Pudding Chocolate';
