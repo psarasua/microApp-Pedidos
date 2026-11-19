@@ -19,10 +19,11 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `src/lib/cart.tsx` carrito en `localStorage`
 - `src/lib/auth.tsx` sesión y perfil; `src/lib/supabase.ts` cliente compartido
 - `supabase/functions/clientes/index.ts` registro de clientes y cambio de clave por el admin (se despliega con verify_jwt desactivado)
-- Excel del pedido: al confirmar un pedido se abre «Mis pedidos» con ese pedido y el botón «Descargar Excel»; cada pedido del historial tiene el mismo botón
-  (también el admin en «Recibidos»). Se genera en el navegador con `src/lib/excelPedido.ts` (exceljs, cargado solo al descargar; datos del cliente, artículos, cantidades y total).
-- `supabase/functions/pedido-correo/` (`index.ts` + `excel.ts`, verify_jwt desactivado) ya está desplegada pero **la app todavía no la usa** (el envío por correo es lo último
-  que se hace). Cuando se active: llamar `enviarPedidoPorCorreo(id)` (`src/lib/supabase.ts`) tras `createOrder`; envía por Brevo el Excel a `PEDIDOS_DESTINO` y, en copia,
+- Archivo del pedido: al confirmar un pedido se abre «Mis pedidos» con ese pedido y el botón «Descargar .txt»; cada pedido del historial tiene el mismo botón (también el admin en «Recibidos»).
+  Se genera en el navegador con `src/lib/txtPedido.ts`: **una línea por artículo, sin encabezado y con CRLF: `codigo_cliente,codigo_articulo,cantidad`** (el código de cliente sale de
+  `pedidos.codigo_cliente`, que fija un trigger al crear el pedido; el artículo es `productos.codigo`). Si falta el código de cliente o algún código de artículo, no se genera y se explica por qué.
+- `supabase/functions/pedido-correo/` (`index.ts`, verify_jwt desactivado; hay que volver a desplegarla con el cambio a .txt) ya está desplegada pero **la app todavía no la usa** (el envío por correo es lo último
+  que se hace). Cuando se active: llamar `enviarPedidoPorCorreo(id)` (`src/lib/supabase.ts`) tras `createOrder`; envía por Brevo el .txt adjunto a `PEDIDOS_DESTINO` y, en copia,
   a `PEDIDOS_COPIA` (secretos, listas separadas por comas), una sola vez por pedido (`pedidos.correo_enviado_at`, reserva atómica; el admin puede reenviar con `reenviar`).
 - `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Admin (CRUD productos, categorías y aprobación de clientes), Login, Register, Recover, ForgotUser, ForcePasswordChange
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
@@ -72,6 +73,9 @@ del catálogo, cambio de categoría). Con «reducir movimiento» queda solo el f
   `CORREO_SIMULADO=1` solo para pruebas y `ALLOWED_ORIGINS` (opcional, lista de orígenes permitidos por CORS; sin él se permite cualquiera).
   `restablecer_clave` solo funciona sobre clientes, no sobre admins. No hay sección «Mi cuenta»: el cliente solo ve Catálogo, Pedido y Mis pedidos (más «Salir»).
   Para cambiar el ID de una cuenta hay que actualizar `auth.users.email`, `auth.identities.identity_data.email` y `perfiles.usuario` juntos.
+- **Código y nombre de cliente:** `perfiles.codigo_cliente` (1 a 10 dígitos, único) y `perfiles.nombre_cliente` los asigna solo el admin (pestaña Clientes; la política de UPDATE de `perfiles` es solo admin).
+  Hasta tener ambos, una cuenta aprobada ve el catálogo pero no puede crear pedidos: lo exige la política `pedidos: crear` (función `private.puede_pedir`) y la app avisa (`AvisoSinCodigo`) y desactiva «Confirmar pedido».
+  En modo local no aplica. Migración para una base existente: `supabase/migraciones/2026-11-18-codigo-de-cliente.sql`.
 - Roles: `cliente` (ve catálogo y solo sus pedidos) y `admin`. Un cliente nuevo queda `pendiente` hasta que el admin lo aprueba.
 - La seguridad real está en las políticas RLS de `schema.sql`, no en ocultar pantallas. El precio de cada ítem lo fija un trigger
   desde `productos`: nunca confiar en el precio que envía el navegador.

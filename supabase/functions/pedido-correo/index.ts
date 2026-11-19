@@ -1,4 +1,4 @@
-// Edge Function "pedido-correo": envía por correo (Brevo) el Excel de un pedido a los destinatarios configurados.
+// Edge Function "pedido-correo": envía por correo (Brevo) el archivo .txt de un pedido (codigo_cliente,codigo_articulo,cantidad) a los destinatarios configurados.
 // Se despliega con verify_jwt desactivado; valida el token de la persona por su cuenta.
 //
 // Secretos de la función:
@@ -9,7 +9,6 @@
 //   ALLOWED_ORIGINS      (opcional) orígenes del navegador permitidos, separados por comas
 import { Buffer } from 'node:buffer'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { armarExcel, fechaLegible, type Cliente, type Linea } from './excel.ts'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -31,12 +30,15 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 const fail = (message: string, status = 400) => json({ error: message }, status)
 
+const fechaLegible = (iso: string) =>
+  new Date(iso).toLocaleString('es-UY', { timeZone: 'America/Montevideo', dateStyle: 'short', timeStyle: 'short' })
+type Linea = { codigo: string; nombre: string; cantidad: number; precio: number }
+type Cliente = { nombre: string; usuario: string; email: string | null }
+
 const lista = (v: string | undefined) =>
   (v ?? '').split(',').map((s) => s.trim().toLowerCase()).filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s))
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
-// Nombre de archivo seguro: sin barras, comillas ni caracteres de control.
-const limpio = (s: string) => s.replace(/[^\w.-]+/g, '_').slice(0, 60)
 
 async function manejar(req: Request): Promise<Response> {
   if (req.method !== 'POST') return fail('Método no permitido', 405)
@@ -62,7 +64,7 @@ async function manejar(req: Request): Promise<Response> {
   // El pedido: solo su dueño o un administrador
   const { data: pedido } = await admin
     .from('pedidos')
-    .select('id, created_at, notas, cliente_id, correo_enviado_at')
+    .select('id, created_at, notas, cliente_id, codigo_cliente, correo_enviado_at')
     .eq('id', pedidoId)
     .maybeSingle()
   if (!pedido || (pedido.cliente_id !== sesion.user.id && !esAdmin)) return fail('No se encontró el pedido', 404)
@@ -99,18 +101,25 @@ async function manejar(req: Request): Promise<Response> {
   }
 
   const { data: cli } = pedido.cliente_id
-    ? await admin.from('perfiles').select('nombre, usuario, telefono, direccion, email').eq('id', pedido.cliente_id).maybeSingle()
+    ? await admin.from('perfiles').select('nombre, usuario, email').eq('id', pedido.cliente_id).maybeSingle()
     : { data: null }
-  const cliente: Cliente = cli ?? { nombre: 'Sin datos', usuario: '', telefono: '', direccion: '', email: null }
+  const cliente: Cliente = cli ?? { nombre: 'Sin datos', usuario: '', email: null }
 
-  const excel = await armarExcel(cliente, { creado: pedido.created_at, notas: pedido.notas, lineas }).catch(async (e) => {
+  // Una línea por artículo: codigo_cliente,codigo_articulo,cantidad (sin encabezado, fin de línea CRLF).
+  const codigoCliente = String(pedido.codigo_cliente ?? '').trim()
+  if (!/^[0-9]{1,10}$/.test(codigoCliente) || lineas.some((l) => !l.codigo.trim() || /[,
+]/.test(l.codigo))) {
     await soltar()
-    throw e
-  })
+    return fail('El pedido no tiene código de cliente o tiene artículos sin código válido.')
+  }
+  const contenido = lineas.map((l) => `${codigoCliente},${l.codigo.trim()},${l.cantidad}`).join('
+') + '
+'
+  const adjunto = new TextEncoder().encode(contenido)
   const cantidad = lineas.reduce((s, l) => s + l.cantidad, 0)
   const total = lineas.reduce((s, l) => s + l.precio * l.cantidad, 0)
   const cuando = fechaLegible(pedido.created_at)
-  const archivo = `pedido-${limpio(cliente.usuario || 'cliente')}-${pedido.created_at.slice(0, 16).replace(/[-:T]/g, '')}.xlsx`
+  const archivo = `pedido-${codigoCliente}-${pedido.created_at.slice(0, 16).replace(/[-:T]/g, '')}.txt`
   const asunto = `Pedido de ${cliente.nombre} · ${cuando}`
 
   const texto = [
@@ -118,18 +127,18 @@ async function manejar(req: Request): Promise<Response> {
     `Fecha: ${cuando}`,
     `${lineas.length} productos, ${cantidad} artículos${total > 0 ? `, total ${total.toFixed(2)}` : ''}`,
     pedido.notas ? `Notas: ${pedido.notas}` : '',
-    'El detalle va en el Excel adjunto.',
+    'El detalle va en el archivo .txt adjunto.',
   ].filter(Boolean).join('\n')
   const html = `<div style="font-family:Arial,sans-serif;max-width:480px;color:#17302b">
 <h2 style="margin:0 0 12px">Pedido de ${esc(cliente.nombre)}</h2>
 <p style="margin:0 0 6px">Usuario ${esc(cliente.usuario)} · ${esc(cuando)}</p>
 <p style="margin:0 0 6px">${lineas.length} productos, ${cantidad} artículos${total > 0 ? `, total ${total.toFixed(2)}` : ''}</p>
 ${pedido.notas ? `<p style="margin:12px 0;padding:10px;background:#fbfaf6;border-radius:8px">${esc(pedido.notas)}</p>` : ''}
-<p style="margin:12px 0 0">El detalle va en el Excel adjunto.</p>
+<p style="margin:12px 0 0">El detalle va en el archivo .txt adjunto.</p>
 </div>`
 
   if (Deno.env.get('CORREO_SIMULADO') === '1') {
-    console.log(`[pedido simulado] para=${destino} cc=${copia} asunto=${asunto} archivo=${archivo} bytes=${excel.length}\n${texto}`)
+    console.log(`[pedido simulado] para=${destino} cc=${copia} asunto=${asunto} archivo=${archivo} bytes=${adjunto.length}\n${texto}`)
   } else {
     const clave = Deno.env.get('BREVO_API_KEY')
     const remitente = Deno.env.get('BREVO_SENDER_EMAIL')
@@ -148,7 +157,7 @@ ${pedido.notas ? `<p style="margin:12px 0;padding:10px;background:#fbfaf6;border
         subject: asunto,
         htmlContent: html,
         textContent: texto,
-        attachment: [{ name: archivo, content: Buffer.from(excel).toString('base64') }],
+        attachment: [{ name: archivo, content: Buffer.from(adjunto).toString('base64') }],
       }),
     })
     if (!res.ok) {

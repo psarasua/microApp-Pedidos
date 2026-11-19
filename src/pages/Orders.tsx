@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
-import { descargarExcelPedido } from '../lib/excelPedido'
+import { descargarTxtPedido } from '../lib/txtPedido'
 import { formatDate, formatMoney } from '../lib/format'
 import type { Order, OrderStatus } from '../lib/types'
 
@@ -34,21 +34,17 @@ export function Orders() {
   const nav = useNavigate()
   const { isAdmin } = useAuth()
   const location = useLocation()
-  // Al venir de confirmar un pedido se abre ese pedido y se ofrece la descarga del Excel.
+  // Al venir de confirmar un pedido se abre ese pedido y se ofrece la descarga del archivo .txt.
   const nuevo = (location.state as { nuevo?: string | null } | null)?.nuevo ?? null
   const [open, setOpen] = useState<string | null>(nuevo)
   const [error, setError] = useState('')
-  const [descargando, setDescargando] = useState<string | null>(null)
 
-  async function descargar(o: Order) {
+  function descargar(o: Order) {
     setError('')
-    setDescargando(o.id)
     try {
-      await descargarExcelPedido(o)
-    } catch {
-      setError('No se pudo generar el Excel. Intenta de nuevo.')
-    } finally {
-      setDescargando(null)
+      descargarTxtPedido(o, { sinCuentas: db.mode === 'local' })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo generar el archivo. Intenta de nuevo.')
     }
   }
   const pedidoNuevo = nuevo ? orders.find((o) => o.id === nuevo) : undefined
@@ -82,10 +78,8 @@ export function Orders() {
       {error && <p role="alert" className="mb-3 text-stamp">{error}</p>}
       {pedidoNuevo && (
         <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-accion-soft p-4">
-          <p className="font-semibold text-accion-dark">Pedido confirmado. El Excel está listo.</p>
-          <Button onClick={() => descargar(pedidoNuevo)} disabled={descargando === pedidoNuevo.id}>
-            {descargando === pedidoNuevo.id ? 'Preparando…' : 'Descargar Excel'}
-          </Button>
+          <p className="font-semibold text-accion-dark">Pedido confirmado. El archivo .txt está listo.</p>
+          <Button onClick={() => descargar(pedidoNuevo)}>Descargar .txt</Button>
         </div>
       )}
       <ul className="space-y-3">
@@ -113,9 +107,7 @@ export function Orders() {
                   </ul>
                   {o.notes && <p className="mt-3 rounded-lg bg-paper p-3 text-sm">{o.notes}</p>}
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button onClick={() => descargar(o)} disabled={descargando === o.id} className="h-10 text-sm">
-                      {descargando === o.id ? 'Preparando…' : 'Descargar Excel'}
-                    </Button>
+                    <Button onClick={() => descargar(o)} className="h-10 text-sm">Descargar .txt</Button>
                     <Button variant="ghost" onClick={() => repeat(o)}>Repetir pedido</Button>
                   </div>
                   {isAdmin && (

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AvisoSinCodigo } from '../components/AvisoSinCodigo'
 import { InstallTip } from '../components/InstallTip'
 import { Modal } from '../components/Modal'
 import { ProductPhoto } from '../components/ProductPhoto'
@@ -75,6 +76,7 @@ export function Catalog() {
         ))}
       </nav>
       <div>
+      <AvisoSinCodigo className="mb-3" />
       <InstallTip />
       <div className="sticky top-14 z-30 -mx-4 space-y-3 bg-paper/95 px-4 pb-3 pt-1 backdrop-blur md:-mx-8 md:px-8 lg:mx-0 lg:px-0">
         <div className="relative">

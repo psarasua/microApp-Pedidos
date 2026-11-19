@@ -98,6 +98,9 @@ export const localDb: Db = {
   async setClienteEstado() {
     throw new Error('Los clientes requieren Supabase')
   },
+  async setClienteDatos() {
+    throw new Error('Los clientes requieren Supabase')
+  },
   async resetClave() {
     throw new Error('Los clientes requieren Supabase')
   },

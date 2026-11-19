@@ -61,7 +61,7 @@ export function createSupabaseDb(): Db {
       const { data } = check(
         await sb
           .from('pedidos')
-          .select('id, created_at, status:estado, notes:notas, cliente:perfiles(nombre, usuario, telefono, direccion, email), items:pedido_items(product_id:producto_id, codigo, name:nombre, price:precio, quantity:cantidad)')
+          .select('id, created_at, status:estado, notes:notas, codigo_cliente, cliente:perfiles(nombre, usuario, telefono, direccion, email, nombre_cliente), items:pedido_items(product_id:producto_id, codigo, name:nombre, price:precio, quantity:cantidad)')
           .order('created_at', { ascending: false }),
       )
       return (data ?? []) as unknown as Order[]
@@ -88,6 +88,14 @@ export function createSupabaseDb(): Db {
     },
     async setClienteEstado(id, estado) {
       check(await sb.from('perfiles').update({ estado }).eq('id', id))
+    },
+    async setClienteDatos(id, datos) {
+      const res = await sb
+        .from('perfiles')
+        .update({ codigo_cliente: datos.codigo_cliente.trim() || null, nombre_cliente: datos.nombre_cliente.trim() || null })
+        .eq('id', id)
+      if (res.error?.message.includes('perfiles_codigo_cliente_key')) throw new Error('Ese código de cliente ya lo tiene otro cliente')
+      check(res)
     },
     async resetClave(id) {
       const { temporal } = await invokeClientes<{ ok: true; temporal: string }>({ accion: 'restablecer_clave', id })

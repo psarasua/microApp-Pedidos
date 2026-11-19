@@ -30,6 +30,10 @@ create table if not exists perfiles (
   telefono text not null default '' check (char_length(telefono) <= 20),
   email text check (email is null or (char_length(email) <= 254 and email = lower(email))),
   email_verificado boolean not null default false,
+  -- Código y nombre del cliente en el sistema de quien recibe los pedidos. Solo los asigna el admin (la política de UPDATE es solo para admin);
+  -- sin ambos el cliente no puede crear pedidos (ver private.puede_pedir). El código lleva de 1 a 10 dígitos y no se repite.
+  codigo_cliente text check (codigo_cliente ~ '^[0-9]{1,10}$'),
+  nombre_cliente text check (char_length(btrim(nombre_cliente)) between 2 and 80),
   debe_cambiar_clave boolean not null default false, -- el admin restableció la clave: hay que elegir una nueva
   rol text not null default 'cliente' check (rol in ('cliente','admin')),
   estado text not null default 'pendiente' check (estado in ('pendiente','aprobado','bloqueado')),
@@ -38,6 +42,9 @@ create table if not exists perfiles (
   constraint perfiles_aprobado_requiere_correo check (rol = 'admin' or estado <> 'aprobado' or email_verificado)
 );
 create unique index if not exists perfiles_email_key on perfiles(email) where email is not null;
+alter table perfiles add column if not exists codigo_cliente text check (codigo_cliente ~ '^[0-9]{1,10}$');
+alter table perfiles add column if not exists nombre_cliente text check (char_length(btrim(nombre_cliente)) between 2 and 80);
+create unique index if not exists perfiles_codigo_cliente_key on perfiles(codigo_cliente) where codigo_cliente is not null;
 
 create table if not exists pedidos (
   id uuid primary key default gen_random_uuid(),
@@ -45,8 +52,10 @@ create table if not exists pedidos (
   estado text not null default 'pendiente' check (estado in ('pendiente','enviado','entregado')),
   notas text not null default '' constraint pedidos_notas_largo check (char_length(notas) <= 500),
   cliente_id uuid default auth.uid() references perfiles(id) on delete set null,
-  correo_enviado_at timestamptz -- cuándo la función pedido-correo envió el Excel (null = todavía no)
+  codigo_cliente text, -- código del cliente al confirmar el pedido; lo copia un trigger desde perfiles (no se confía en el navegador)
+  correo_enviado_at timestamptz -- cuándo la función pedido-correo envió el archivo .txt (null = todavía no)
 );
+alter table pedidos add column if not exists codigo_cliente text;
 alter table pedidos add column if not exists correo_enviado_at timestamptz;
 
 create table if not exists pedido_items (
@@ -91,6 +100,18 @@ revoke all on function private.es_aprobado() from public;
 grant execute on function private.es_admin() to authenticated;
 grant execute on function private.es_aprobado() to authenticated;
 
+-- Puede hacer pedidos: cuenta aprobada y con código y nombre de cliente asignados por el admin.
+create or replace function private.puede_pedir() returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.perfiles
+    where id = (select auth.uid()) and estado = 'aprobado'
+      and codigo_cliente is not null and btrim(coalesce(nombre_cliente, '')) <> ''
+  )
+$$;
+revoke all on function private.puede_pedir() from public;
+grant execute on function private.puede_pedir() to authenticated;
+
 -- El nombre, el precio y el código de cada ítem los fija el servidor desde el producto: el cliente no puede alterarlos.
 create or replace function private.fijar_item() returns trigger
 language plpgsql security definer set search_path = '' as $$
@@ -108,6 +129,17 @@ end $$;
 drop trigger if exists pedido_items_fijar on pedido_items;
 create trigger pedido_items_fijar before insert on pedido_items
   for each row execute function private.fijar_item();
+
+-- El código de cliente del pedido sale siempre de perfiles (aunque el navegador envíe otro).
+create or replace function private.fijar_pedido() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  new.codigo_cliente := (select codigo_cliente from public.perfiles where id = new.cliente_id);
+  return new;
+end $$;
+revoke execute on function private.fijar_pedido() from public, anon, authenticated;
+create trigger pedidos_fijar_codigo before insert on pedidos
+  for each row execute function private.fijar_pedido();
 
 -- Crea un pedido con sus artículos en una sola transacción (si algo falla no queda un pedido vacío).
 -- Corre con los permisos de quien llama, así que aplican las políticas RLS y el trigger que fija nombre y precio.
@@ -163,7 +195,7 @@ create policy "productos: borrar" on productos for delete to authenticated using
 create policy "pedidos: ver" on pedidos for select to authenticated
   using ((cliente_id = (select auth.uid()) and (select private.es_aprobado())) or (select private.es_admin()));
 create policy "pedidos: crear" on pedidos for insert to authenticated
-  with check (cliente_id = (select auth.uid()) and estado = 'pendiente' and (select private.es_aprobado()));
+  with check (cliente_id = (select auth.uid()) and estado = 'pendiente' and (select private.puede_pedir()));
 create policy "pedidos: admin edita" on pedidos for update to authenticated
   using ((select private.es_admin())) with check ((select private.es_admin()));
 create policy "pedidos: admin borra" on pedidos for delete to authenticated

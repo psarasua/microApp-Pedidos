@@ -30,6 +30,9 @@ export type Perfil = {
   /** Correo del cliente; obligatorio al registrarse y verificado con un código. */
   email: string | null
   email_verificado: boolean
+  /** Código y nombre del cliente en el sistema de quien recibe los pedidos. Solo los asigna el admin; sin ambos no se puede pedir. */
+  codigo_cliente: string | null
+  nombre_cliente: string | null
   /** El admin restableció la contraseña: la persona debe elegir una nueva antes de seguir. */
   debe_cambiar_clave: boolean
   rol: 'cliente' | 'admin'
@@ -43,7 +46,9 @@ export type Order = {
   status: OrderStatus
   notes: string
   items: OrderItem[]
-  cliente?: { nombre: string; usuario: string; telefono?: string; direccion?: string; email?: string | null } | null
+  /** Código de cliente al confirmar el pedido (lo fija la base; no cambia si el admin lo edita después). */
+  codigo_cliente?: string | null
+  cliente?: { nombre: string; usuario: string; telefono?: string; direccion?: string; email?: string | null; nombre_cliente?: string | null } | null
 }
 
 export type ProductInput = Omit<Product, 'id'> & { id?: string }
@@ -65,6 +70,8 @@ export interface Db {
   deleteOrder(id: string): Promise<void>
   listClientes(): Promise<Perfil[]>
   setClienteEstado(id: string, estado: Perfil['estado']): Promise<void>
+  /** Asigna el código y el nombre de cliente (solo el admin). El código son 1 a 10 dígitos y no puede repetirse. */
+  setClienteDatos(id: string, datos: { codigo_cliente: string; nombre_cliente: string }): Promise<void>
   /** Restablece la contraseña del cliente y devuelve la temporal generada (se muestra una sola vez). */
   resetClave(id: string): Promise<string>
 }

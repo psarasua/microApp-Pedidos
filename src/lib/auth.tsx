@@ -8,6 +8,8 @@ type AuthCtx = {
   signedIn: boolean
   perfil: Perfil | null
   isAdmin: boolean
+  /** Aprobado y con código y nombre de cliente asignados por el admin. Sin eso no se pueden confirmar pedidos (la base también lo exige). */
+  puedePedir: boolean
   signIn: (usuario: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshPerfil: () => Promise<void>
@@ -24,6 +26,8 @@ const LOCAL_PERFIL: Perfil = {
   telefono: '',
   email: null,
   email_verificado: true,
+  codigo_cliente: null,
+  nombre_cliente: null,
   debe_cambiar_clave: false,
   rol: 'admin',
   estado: 'aprobado',
@@ -70,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signedIn: sb ? Boolean(session) : true,
       perfil,
       isAdmin: perfil?.rol === 'admin' && perfil.estado === 'aprobado',
+      // En modo local (sin cuentas) siempre se puede pedir.
+      puedePedir: !sb || Boolean(perfil && perfil.estado === 'aprobado' && perfil.codigo_cliente && perfil.nombre_cliente?.trim()),
       async signIn(usuario, password) {
         const { error } = await sb!.auth.signInWithPassword({ email: emailDe(soloDigitos(usuario)), password })
         if (error) throw new Error('Usuario o contraseña incorrectos')

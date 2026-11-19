@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AvisoSinCodigo } from '../components/AvisoSinCodigo'
 import { confirmar } from '../components/confirmar'
 import { ProductPhoto } from '../components/ProductPhoto'
 import { Stepper } from '../components/Stepper'
 import { Button, Empty, inputClass } from '../components/ui'
+import { useAuth } from '../lib/auth'
 import { useCart } from '../lib/cart'
 import { useData } from '../lib/data'
 import { db } from '../lib/db'
@@ -17,6 +19,7 @@ export function Cart() {
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const { puedePedir } = useAuth()
 
   const lines = cart.lines
     .map((l) => ({ ...l, product: products.find((p) => p.id === l.productId) }))
@@ -45,7 +48,7 @@ export function Cart() {
       const id = await db.createOrder(items, notes.trim())
       cart.clear()
       await refresh()
-      // Se abre el pedido recién confirmado en el historial, con el Excel listo para descargar.
+      // Se abre el pedido recién confirmado en el historial, con el archivo .txt listo para descargar.
       nav('/historial', { state: { nuevo: id } })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar el pedido. Intenta de nuevo.')
@@ -57,6 +60,7 @@ export function Cart() {
   return (
     <div className="mx-auto max-w-xl">
       <h1 className="mb-4 text-2xl font-extrabold">Nuevo pedido</h1>
+      <AvisoSinCodigo className="mb-4" />
       <div className="ticket px-5 py-8 shadow-[0_1px_0_var(--color-line)]">
         <ul className="divide-y divide-dashed divide-line">
           {lines.map(({ product: p, quantity }) => (
@@ -90,7 +94,7 @@ export function Cart() {
       </label>
 
       {error && <p role="alert" className="mt-3 text-stamp">{error}</p>}
-      <Button className="mt-4 w-full" onClick={confirm} disabled={busy}>
+      <Button className="mt-4 w-full" onClick={confirm} disabled={busy || !puedePedir}>
         {busy ? 'Guardando…' : 'Confirmar pedido'}
       </Button>
       <Button variant="ghost" className="mt-2 w-full" onClick={() => confirm_clear(cart.clear)}>Vaciar pedido</Button>

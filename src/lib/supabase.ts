@@ -29,6 +29,6 @@ async function invocar<T>(nombre: string, body: Record<string, unknown>): Promis
 /** Función `clientes` (registro y gestión de claves). */
 export const invokeClientes = <T = { ok: true }>(body: Record<string, unknown>) => invocar<T>('clientes', body)
 
-/** Función `pedido-correo`: envía el Excel del pedido por correo. El administrador puede reenviarlo (`reenviar`). */
+/** Función `pedido-correo`: envía por correo el archivo .txt del pedido. El administrador puede reenviarlo (`reenviar`). */
 export const enviarPedidoPorCorreo = (pedido_id: string, reenviar = false) =>
   invocar<{ ok: true; ya_enviado?: boolean }>('pedido-correo', { pedido_id, reenviar })
