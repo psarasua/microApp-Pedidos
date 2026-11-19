@@ -29,3 +29,6 @@ dist-ssr
 
 # Permisos personales de Claude Code
 .claude/settings.local.json
+
+# Archivos temporales de la CLI de Supabase
+supabase/.temp/

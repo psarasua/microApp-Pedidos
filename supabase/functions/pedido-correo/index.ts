@@ -107,14 +107,11 @@ async function manejar(req: Request): Promise<Response> {
 
   // Una línea por artículo: codigo_cliente,codigo_articulo,cantidad (sin encabezado, fin de línea CRLF).
   const codigoCliente = String(pedido.codigo_cliente ?? '').trim()
-  if (!/^[0-9]{1,10}$/.test(codigoCliente) || lineas.some((l) => !l.codigo.trim() || /[,
-]/.test(l.codigo))) {
+  if (!/^[0-9]{1,10}$/.test(codigoCliente) || lineas.some((l) => !l.codigo.trim() || /[,\r\n]/.test(l.codigo))) {
     await soltar()
     return fail('El pedido no tiene código de cliente o tiene artículos sin código válido.')
   }
-  const contenido = lineas.map((l) => `${codigoCliente},${l.codigo.trim()},${l.cantidad}`).join('
-') + '
-'
+  const contenido = lineas.map((l) => `${codigoCliente},${l.codigo.trim()},${l.cantidad}`).join('\r\n') + '\r\n'
   const adjunto = new TextEncoder().encode(contenido)
   const cantidad = lineas.reduce((s, l) => s + l.cantidad, 0)
   const total = lineas.reduce((s, l) => s + l.precio * l.cantidad, 0)
