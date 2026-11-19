@@ -130,11 +130,14 @@ drop trigger if exists pedido_items_fijar on pedido_items;
 create trigger pedido_items_fijar before insert on pedido_items
   for each row execute function private.fijar_item();
 
--- El código de cliente del pedido sale siempre de perfiles (aunque el navegador envíe otro).
+-- Los datos que el servidor decide salen siempre del servidor, aunque el navegador envíe otros en un INSERT directo:
+-- el código de cliente (de perfiles), la fecha y la marca de correo enviado.
 create or replace function private.fijar_pedido() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   new.codigo_cliente := (select codigo_cliente from public.perfiles where id = new.cliente_id);
+  new.created_at := now();
+  new.correo_enviado_at := null;
   return new;
 end $$;
 revoke execute on function private.fijar_pedido() from public, anon, authenticated;

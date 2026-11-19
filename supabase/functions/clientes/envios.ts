@@ -1,7 +1,7 @@
 // Registro de envíos, límites por correo y conexión, y validación de códigos.
 import { admin } from './supabase.ts'
 import { fail } from './http.ts'
-import { CODIGO_INTENTOS, CODIGO_VENCE_MIN, ENVIOS_CORREO_HORA, ENVIOS_GLOBAL_DIA, ENVIOS_IP_HORA, ESPERA_SEG } from './limites.ts'
+import { CODIGO_INTENTOS, CODIGO_VENCE_MIN, ENVIOS_CORREO_HORA, ENVIOS_GLOBAL_DIA, ENVIOS_IP_HORA, ESPERA_SEG, TOPE_DIA_POR_TIPO } from './limites.ts'
 import { aleatorio, hace, iguales, nuevoCodigo, sha256 } from './utiles.ts'
 import { Mensaje, enviarCorreo, plantilla } from './correo.ts'
 
@@ -9,15 +9,18 @@ import { Mensaje, enviarCorreo, plantilla } from './correo.ts'
 export const envios = () => admin.from('envios_correo')
 
 /** Devuelve el motivo si no se puede enviar otro correo a esta clave (correo o identificador) desde esta conexión. */
-export async function limiteEnvios(clave: string, ip: string): Promise<string | null> {
+export async function limiteEnvios(clave: string, ip: string, tipo?: string): Promise<string | null> {
   const contar = () => envios().select('id', { count: 'exact', head: true })
-  const [porCorreo, ultimo, porIp, global] = await Promise.all([
+  const tope = tipo ? TOPE_DIA_POR_TIPO[tipo] : undefined
+  const [porCorreo, ultimo, porIp, global, porTipo] = await Promise.all([
     contar().eq('email', clave).gte('created_at', hace(60)),
     envios().select('created_at').eq('email', clave).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     contar().eq('ip_hash', ip).gte('created_at', hace(60)),
     contar().eq('enviado', true).gte('created_at', hace(1440)),
+    tope ? contar().eq('tipo', tipo!).eq('enviado', true).gte('created_at', hace(1440)) : Promise.resolve({ count: 0 }),
   ])
   if ((global.count ?? 0) >= ENVIOS_GLOBAL_DIA) return 'El envío de correos está saturado por hoy. Intenta mañana o pide ayuda al administrador.'
+  if (tope && (porTipo.count ?? 0) >= tope) return 'Se alcanzó el tope de correos de este tipo por hoy. Intenta mañana o pide ayuda al administrador.'
   if (ultimo.data && Date.now() - new Date(ultimo.data.created_at).getTime() < ESPERA_SEG * 1000)
     return 'Espera un minuto antes de pedir otro correo.'
   if ((porCorreo.count ?? 0) >= ENVIOS_CORREO_HORA) return 'Pediste demasiados correos. Intenta de nuevo en una hora.'

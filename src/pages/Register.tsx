@@ -83,7 +83,7 @@ export function Register() {
 
   if (step === 'codigo')
     return (
-      <AuthLayout title="Revisa tu correo" subtitle={`Te enviamos un código a ${correo}. Vence en 15 minutos.`}>
+      <AuthLayout title="Revisa tu correo" subtitle={`Te enviamos un correo a ${correo}. Si es una cuenta nueva, trae un código que vence en 15 minutos; si ya tenías cuenta, te avisamos cómo entrar.`}>
         <form onSubmit={verify} className="space-y-4 rounded-2xl border-2 border-line bg-sheet p-5">
           <CodeField value={codigo} onChange={setCodigo} autoFocus />
           {error && <p role="alert" className="text-stamp">{error}</p>}

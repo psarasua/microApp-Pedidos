@@ -10,4 +10,6 @@ export const ENVIOS_CORREO_HORA = 3 // correos por dirección y por hora
 export const ENVIOS_IP_HORA = 10 // correos por conexión y por hora
 export const REGISTROS_IP_HORA = 5 // registros por conexión y por hora
 export const ENVIOS_GLOBAL_DIA = 250 // tope diario (el plan gratis de Brevo permite 300)
+// Tope diario por tipo de correo: así nadie puede agotar la cuota entera con un solo tipo (p. ej. registros) y dejar sin recuperación a los demás.
+export const TOPE_DIA_POR_TIPO: Record<string, number> = { registro: 100, recuperacion: 100, usuario: 25 }
 export const SIN_VERIFICAR_HORAS = 24 // las cuentas sin verificar se borran pasado este tiempo

@@ -8,7 +8,7 @@ import { buscarPerfil } from '../perfiles.ts'
 export async function olvideUsuario(body: Record<string, unknown>, req: Request): Promise<Response> {
   const email = limpiarCorreo(body.email)
   const ip = await huellaIp(req)
-  const limite = await limiteEnvios(email, ip)
+  const limite = await limiteEnvios(email, ip, 'usuario')
   if (limite) return fail(limite, 429)
   const perfil = email.includes('@') ? await buscarPerfil(email) : null
   if (perfil) {

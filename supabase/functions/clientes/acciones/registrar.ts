@@ -2,7 +2,8 @@ import { admin } from '../supabase.ts'
 import { NO_ENVIADO, fail, json } from '../http.ts'
 import { INTENTOS_ID, MAX_PENDIENTES, REGISTROS_IP_HORA } from '../limites.ts'
 import { esCorreo, hace, huellaIp, limpiarCorreo, nuevoId } from '../utiles.ts'
-import { enviarCodigo, envios, limiteEnvios } from '../envios.ts'
+import { plantilla } from '../correo.ts'
+import { enviarAviso, enviarCodigo, envios, limiteEnvios } from '../envios.ts'
 import { emailDe, limpiar, validarClave } from '../perfiles.ts'
 
 /** Registro: crea la cuenta sin verificar y envía el código al correo. */
@@ -23,10 +24,24 @@ export async function registrar(body: Record<string, unknown>, req: Request): Pr
 
   await limpiar()
   const { data: existente } = await admin.from('perfiles').select('id, email_verificado').eq('email', email).maybeSingle()
-  if (existente?.email_verificado) return fail('Ese correo ya tiene una cuenta. Si es tuyo, usa «Olvidé mi contraseña».', 409)
-
-  const limite = await limiteEnvios(email, ip)
+  const limite = await limiteEnvios(email, ip, 'registro')
   if (limite) return fail(limite, 429)
+  if (existente?.email_verificado) {
+    // La respuesta es la misma que la de un registro nuevo: no se revela qué correos ya tienen cuenta.
+    // A quien ya la tiene se le avisa por correo y se le dice cómo entrar.
+    await enviarAviso(
+      email,
+      ip,
+      existente.id,
+      'Ya tienes una cuenta',
+      plantilla('Ya tienes una cuenta', [
+        'Alguien pidió crear una cuenta con este correo, pero ya existe una.',
+        'Si fuiste tú, entra con tu usuario y tu contraseña. Si no los recuerdas, en la pantalla de ingreso usa «Olvidé mi usuario» u «Olvidé mi contraseña».',
+        'Si no fuiste tú, puedes ignorar este mensaje.',
+      ]),
+    )
+    return json({ ok: true })
+  }
   const { count: pendientes } = await admin
     .from('perfiles')
     .select('id', { count: 'exact', head: true })

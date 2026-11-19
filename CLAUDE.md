@@ -31,8 +31,8 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
   Cada pestaña o ventana del admin vive en su archivo de `src/pages/admin/`: `ProductosTab`, `ProductoForm`, `CategoriasTab`, `ClientesTab`, `DatosClienteModal`, `RestablecerClaveModal`, `HerramientasDatosTab`.
 - **Regla de organización:** un archivo, una responsabilidad y un nombre que la diga; si pasa de ~200 líneas hay que preguntarse si hace más de una cosa. Las pantallas dependen de la interfaz `Db` (`types.ts`), no de Supabase.
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
-- `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). Si se agrega un servicio externo (fuentes, imágenes,
-  API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).
+- `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). La CSP permite solo el host de este proyecto de Supabase (`tiiyjggvjxnvfbmpwrlv.supabase.co`): si cambia el proyecto hay que actualizar `img-src` y `connect-src`.
+  Si se agrega un servicio externo (fuentes, imágenes, API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).
 - Los pedidos se crean con la función SQL `crear_pedido` (una sola transacción); el navegador solo envía producto y cantidad.
 - `supabase/schema.sql` esquema completo; los nombres de columnas están en español y se mapean a inglés en `db.supabase.ts`
 - Catálogo de Conaprole 2026 (189 productos, 9 categorías: sin Helados, Congelados ni Polar Food, que no se venden): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
@@ -70,13 +70,15 @@ del catálogo, cambio de categoría). Con «reducir movimiento» queda solo el f
   con el ID o el correo) y recuperar el usuario (`olvide_usuario`). **La contraseña nunca se envía por correo ni se puede mostrar** (es un hash).
   Los códigos y los límites de envío viven en `envios_correo` (solo accesible por la función `clientes`): vencen a los 15 min, 5 intentos,
   3 correos por dirección/hora, 10 por conexión/hora, 250 por día; los intentos se cuentan con `codigo_intento` (atómico). Las respuestas de
-  recuperación son genéricas para no revelar qué cuentas existen. Un cliente no puede ser aprobado sin `email_verificado` (check en la tabla).
+  recuperación y de registro son genéricas para no revelar qué cuentas existen (si el correo ya tiene cuenta, `registrar` responde igual y le manda un aviso). La IP del cliente sale solo de
+  `cf-connecting-ip` (Cloudflare; no se puede falsificar), nunca de `x-forwarded-for`. Además del tope global hay un tope diario por tipo de correo (`TOPE_DIA_POR_TIPO`). Un cliente no puede ser aprobado sin `email_verificado` (check en la tabla).
   Otras acciones: `registrar`, `verificar_correo`, `reenviar_codigo`, `cambiar_clave`, `restablecer_clave` (admin: genera una contraseña temporal y marca
   `perfiles.debe_cambiar_clave`, que fuerza la pantalla `ForcePasswordChange`). Cambiar una contraseña invalida las sesiones abiertas,
   por eso la app vuelve a iniciar sesión justo después. Secretos de la función: `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`,
   `CORREO_SIMULADO=1` solo para pruebas y `ALLOWED_ORIGINS` (opcional, lista de orígenes permitidos por CORS; sin él se permite cualquiera).
   `restablecer_clave` solo funciona sobre clientes, no sobre admins. No hay sección «Mi cuenta»: el cliente solo ve Catálogo, Pedido y Mis pedidos (más «Salir»).
   Para cambiar el ID de una cuenta hay que actualizar `auth.users.email`, `auth.identities.identity_data.email` y `perfiles.usuario` juntos.
+- El trigger `private.fijar_pedido` fija en el servidor `codigo_cliente`, `created_at` y `correo_enviado_at` de cada pedido (el navegador no decide esos datos).
 - **Código y nombre de cliente:** `perfiles.codigo_cliente` (1 a 10 dígitos, único) y `perfiles.nombre_cliente` los asigna solo el admin (pestaña Clientes, que también lista las cuentas de administrador, solo para asignarles código y nombre y poder pedir desde ellas; la política de UPDATE de `perfiles` es solo admin).
   Hasta tener ambos, una cuenta aprobada ve el catálogo pero no puede crear pedidos: lo exige la política `pedidos: crear` (función `private.puede_pedir`) y la app avisa (`AvisoSinCodigo`) y desactiva «Confirmar pedido».
   En modo local no aplica. Migración para una base existente: `supabase/migraciones/2026-11-18-codigo-de-cliente.sql`.

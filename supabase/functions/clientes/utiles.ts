@@ -29,7 +29,9 @@ export const limpiarCorreo = (v: unknown) => String(v ?? '').trim().toLowerCase(
 export const esCorreo = (s: string) => s.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)
 
 export async function huellaIp(req: Request): Promise<string> {
-  const ip = (req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim()
+  // Solo se confía en cf-connecting-ip: lo pone Cloudflare delante de Supabase y no se puede falsificar (verificado: un valor inventado
+  // es rechazado). x-forwarded-for sí lo puede escribir el cliente, así que no se usa.
+  const ip = (req.headers.get('cf-connecting-ip') ?? '').trim()
   return sha256(`ip:${ip || 'desconocida'}`)
 }
 

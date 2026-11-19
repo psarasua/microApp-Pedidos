@@ -10,7 +10,7 @@ export async function recuperarPedir(body: Record<string, unknown>, req: Request
   const perfil = await buscarPerfil(identificador)
   // La respuesta es la misma exista o no la cuenta, para no revelar quién tiene una.
   const clave = perfil?.email ?? `sin:${identificador.trim().toLowerCase()}`
-  const limite = await limiteEnvios(clave, ip)
+  const limite = await limiteEnvios(clave, ip, 'recuperacion')
   if (limite) return fail(limite, 429)
   if (perfil) {
     try {
