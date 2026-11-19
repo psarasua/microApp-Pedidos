@@ -73,7 +73,7 @@ del catálogo, cambio de categoría). Con «reducir movimiento» queda solo el f
   `CORREO_SIMULADO=1` solo para pruebas y `ALLOWED_ORIGINS` (opcional, lista de orígenes permitidos por CORS; sin él se permite cualquiera).
   `restablecer_clave` solo funciona sobre clientes, no sobre admins. No hay sección «Mi cuenta»: el cliente solo ve Catálogo, Pedido y Mis pedidos (más «Salir»).
   Para cambiar el ID de una cuenta hay que actualizar `auth.users.email`, `auth.identities.identity_data.email` y `perfiles.usuario` juntos.
-- **Código y nombre de cliente:** `perfiles.codigo_cliente` (1 a 10 dígitos, único) y `perfiles.nombre_cliente` los asigna solo el admin (pestaña Clientes; la política de UPDATE de `perfiles` es solo admin).
+- **Código y nombre de cliente:** `perfiles.codigo_cliente` (1 a 10 dígitos, único) y `perfiles.nombre_cliente` los asigna solo el admin (pestaña Clientes, que también lista las cuentas de administrador, solo para asignarles código y nombre y poder pedir desde ellas; la política de UPDATE de `perfiles` es solo admin).
   Hasta tener ambos, una cuenta aprobada ve el catálogo pero no puede crear pedidos: lo exige la política `pedidos: crear` (función `private.puede_pedir`) y la app avisa (`AvisoSinCodigo`) y desactiva «Confirmar pedido».
   En modo local no aplica. Migración para una base existente: `supabase/migraciones/2026-11-18-codigo-de-cliente.sql`.
 - Roles: `cliente` (ve catálogo y solo sus pedidos) y `admin`. Un cliente nuevo queda `pendiente` hasta que el admin lo aprueba.

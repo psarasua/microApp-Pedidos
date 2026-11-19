@@ -83,7 +83,7 @@ export function createSupabaseDb(): Db {
       check(await sb.from('pedidos').delete().eq('id', id))
     },
     async listClientes() {
-      const { data } = check(await sb.from('perfiles').select('*').eq('rol', 'cliente').order('created_at', { ascending: false }))
+      const { data } = check(await sb.from('perfiles').select('*').order('created_at', { ascending: false }))
       return (data ?? []) as Perfil[]
     },
     async setClienteEstado(id, estado) {

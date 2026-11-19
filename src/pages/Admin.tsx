@@ -330,7 +330,9 @@ function Clients() {
                     {c.email && !c.email_verificado && <span className="font-semibold text-stamp"> · correo sin verificar</span>}
                   </p>
                   {c.direccion && <p className="truncate text-sm text-ink-soft">{c.direccion}</p>}
-                  {c.codigo_cliente && c.nombre_cliente ? (
+                  {c.rol === 'admin' && !c.codigo_cliente ? (
+                    <p className="mt-1 text-sm text-ink-soft">Para hacer pedidos desde esta cuenta asígnale un código y nombre de cliente.</p>
+                  ) : c.codigo_cliente && c.nombre_cliente ? (
                     <p className="mt-1 text-sm">
                       <span className="font-semibold">Cliente {c.codigo_cliente}</span> · {c.nombre_cliente}
                     </p>
@@ -339,16 +341,19 @@ function Clients() {
                   )}
                   {c.debe_cambiar_clave && <p className="text-sm font-semibold text-stamp">Tiene una contraseña temporal sin cambiar</p>}
                 </div>
-                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${estadoStyle[c.estado]}`}>{c.estado}</span>
+                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${c.rol === 'admin' ? 'bg-ink text-white' : estadoStyle[c.estado]}`}>
+                  {c.rol === 'admin' ? 'administrador' : c.estado}
+                </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {c.estado !== 'aprobado' && c.email_verificado && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
-                {c.estado !== 'aprobado' && !c.email_verificado && <p className="self-center text-sm text-ink-soft">Se puede aprobar cuando verifique su correo.</p>}
-                {c.estado === 'aprobado' && (
+                {c.rol !== 'admin' && c.estado !== 'aprobado' && c.email_verificado && <Button onClick={() => setEstado(c, 'aprobado')} className="h-10 text-sm">Aprobar</Button>}
+                {c.rol !== 'admin' && c.estado !== 'aprobado' && !c.email_verificado && <p className="self-center text-sm text-ink-soft">Se puede aprobar cuando verifique su correo.</p>}
+                {c.rol !== 'admin' && c.estado === 'aprobado' && (
                   <Button variant="danger" onClick={async () => (await confirmar(`¿Bloquear a ${c.nombre}?`, 'Bloquear')) && setEstado(c, 'bloqueado')}>Bloquear</Button>
                 )}
                 <Button variant="ghost" onClick={() => setDatos(c)}>{c.codigo_cliente ? 'Editar código y nombre' : 'Asignar código y nombre'}</Button>
-                <Button variant="ghost" onClick={() => setResetting(c)}>Restablecer contraseña</Button>
+                {/* La contraseña de un administrador no se restablece desde acá: la función del servidor tampoco lo permite. */}
+                {c.rol !== 'admin' && <Button variant="ghost" onClick={() => setResetting(c)}>Restablecer contraseña</Button>}
               </div>
             </li>
           ))}
