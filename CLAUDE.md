@@ -30,6 +30,7 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `src/pages/` Catalog, Cart (nuevo pedido), Orders (historial), Login, Register, Recover, ForgotUser, ForcePasswordChange y `Admin.tsx` (solo reparte entre pestañas).
   Cada pestaña o ventana del admin vive en su archivo de `src/pages/admin/`: `ProductosTab`, `ProductoForm`, `CategoriasTab`, `ClientesTab`, `DatosClienteModal`, `RestablecerClaveModal`, `HerramientasDatosTab`.
 - **Regla de organización:** un archivo, una responsabilidad y un nombre que la diga; si pasa de ~200 líneas hay que preguntarse si hace más de una cosa. Las pantallas dependen de la interfaz `Db` (`types.ts`), no de Supabase.
+- `supabase/functions/ping/` (verify_jwt desactivado) hace una consulta mínima a la base; `.github/workflows/mantener-activo.yml` la llama cada 2 días para que Supabase (plan gratis) no pause el proyecto por inactividad. Si la app deja de responder, mirar primero si el proyecto está pausado (`INACTIVE`) y restaurarlo.
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
 - `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). La CSP permite solo el host de este proyecto de Supabase (`tiiyjggvjxnvfbmpwrlv.supabase.co`): si cambia el proyecto hay que actualizar `img-src` y `connect-src`.
   Si se agrega un servicio externo (fuentes, imágenes, API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).

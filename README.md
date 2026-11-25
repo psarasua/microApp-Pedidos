@@ -60,6 +60,13 @@ update perfiles set email = 'tu@correo.com', email_verificado = true where usuar
 3. En *Environment Variables* agrega `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `VITE_CURRENCY` con los mismos valores del `.env`.
 4. Pulsa *Deploy*. Cada push a GitHub vuelve a publicar la app. Con Netlify funciona igual (`public/_redirects` ya está incluido).
 
+## Que Supabase no se pause por inactividad
+Los proyectos del plan gratis se pausan tras 7 días sin actividad (la app deja de funcionar hasta reactivarlo en el panel: *Restore project*).
+Para evitarlo, la función `ping` (`supabase/functions/ping`) hace una consulta mínima a la base y la tarea
+`.github/workflows/mantener-activo.yml` la llama cada 2 días desde GitHub Actions (solo corre desde la rama `main`).
+Si el repositorio es público y pasa 60 días sin actividad, GitHub desactiva la tarea: se reactiva en la pestaña *Actions*.
+La alternativa definitiva es el plan Pro de Supabase, que no pausa los proyectos y suma copias de seguridad diarias.
+
 ## Instalar en el celular
 Abre la dirección publicada desde el celular:
 - Android (Chrome): menú ⋮ > *Instalar app*.
