@@ -33,10 +33,10 @@ Debe funcionar en PC, Android e iOS (PWA instalable).
 - `supabase/functions/ping/` (verify_jwt desactivado) hace una consulta mínima a la base; `.github/workflows/mantener-activo.yml` la llama cada 2 días para que Supabase (plan gratis) no pause el proyecto por inactividad. Si la app deja de responder, mirar primero si el proyecto está pausado (`INACTIVE`) y restaurarlo.
 - `src/components/Modal.tsx` (`<dialog>` nativo) y `confirmar.ts` (sustituye a `window.confirm`)
 - `vercel.json` define las cabeceras de seguridad (CSP estricta, HSTS, nosniff, etc.). La CSP permite solo el host de este proyecto de Supabase (`tiiyjggvjxnvfbmpwrlv.supabase.co`): si cambia el proyecto hay que actualizar `img-src` y `connect-src`.
-  Si se agrega un servicio externo (fuentes, imágenes, API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. La fuente se sirve desde el paquete `@fontsource-variable/schibsted-grotesk` (sin Google Fonts).
+  Si se agrega un servicio externo (fuentes, imágenes, API) hay que permitirlo en `connect-src`/`img-src`/`font-src`. Las fuentes (Bricolage Grotesque e Inter) se sirven desde paquetes `@fontsource-variable/*` (sin Google Fonts).
 - Los pedidos se crean con la función SQL `crear_pedido` (una sola transacción); el navegador solo envía producto y cantidad.
 - `supabase/schema.sql` esquema completo; los nombres de columnas están en español y se mapean a inglés en `db.supabase.ts`
-- Catálogo de Conaprole 2026 (189 productos, 9 categorías: sin Helados, Congelados ni Polar Food, que no se venden): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
+- Catálogo de Conaprole 2026 (158 productos en la semilla, 9 categorías: sin Helados, Congelados ni Polar Food, que no se venden): `supabase/seed-catalogo-conaprole.sql` (idempotente) y las fotos en
   `public/productos/<código>.webp` (`image_url = /productos/<código>.webp`).
   El catálogo no trae precios: quedan en 0 y la app los muestra como «Sin precio». **`productos.codigo` es la clave del producto: obligatorio y único**
   (índice `productos_codigo_key`). El catálogo original repetía 81339 y 2635; se resolvió quitando los duplicados (de 2635 queda Pudding Chocolate).

@@ -58,7 +58,7 @@ update perfiles set email = 'tu@correo.com', email_verificado = true where usuar
 1. Entra en https://vercel.com con tu cuenta de GitHub y elige *Add New > Project*.
 2. Selecciona el repositorio `microApp-Pedidos` y la rama que quieras publicar. Vercel detecta Vite solo; `vercel.json` ya tiene la regla para que las rutas de la app funcionen.
 3. En *Environment Variables* agrega `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `VITE_CURRENCY` con los mismos valores del `.env`.
-4. Pulsa *Deploy*. Cada push a GitHub vuelve a publicar la app. Con Netlify funciona igual (`public/_redirects` ya está incluido).
+4. Pulsa *Deploy*. Cada push a `main` vuelve a publicar la app (si el repositorio está conectado a Vercel; si no, `npx vercel deploy --prod`).
 
 ## Que Supabase no se pause por inactividad
 Los proyectos del plan gratis se pausan tras 7 días sin actividad (la app deja de funcionar hasta reactivarlo en el panel: *Restore project*).
